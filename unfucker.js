@@ -1,1 +1,1 @@
-//filename was changed: go to https://github.com/enchanted-sword/dashboard-unfucker, select the version you want, and hit the "raw" button with tampermonkey installed to install the script
+//Project has a new maintainer! Go to https://github.com/ClangPan/dashboard-unfucker, select the version you want, and hit the "raw" button with tampermonkey installed to install the script

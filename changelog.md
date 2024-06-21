@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.0.0
+- We're so back
+- The script works again! Kinda.
+- For now, until I figure out the CSS and unravel the code, you should use the Old Dashboard Stylus layout! Otherwise some elements will look broken. There is no plan to support the new layout.
+
 ## v5.7.1
 - Prevent glitchy timeline effects when using revert header style
 

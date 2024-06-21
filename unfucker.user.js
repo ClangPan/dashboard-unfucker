@@ -1,14 +1,15 @@
 // ==UserScript==
 // @name         dashboard unfucker
-// @version      5.7.1
+// @version      6.0.0
 // @description  no more shitty twitter ui for pc
 // @author       dragongirlsnout
+// @author       CanasSimon
 // @match        https://www.tumblr.com/*
-// @icon         https://www.google.com/s2/favicons?sz=64&domain=tumblr.com
-// @downloadURL  https://raw.githubusercontent.com/enchanted-sword/dashboard-unfucker/main/unfucker.user.js
-// @updateURL    https://raw.githubusercontent.com/enchanted-sword/dashboard-unfucker/main/unfucker.user.js
-// @require      https://code.jquery.com/jquery-3.6.4.min.js
 // @grant        none
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=tumblr.com
+// @downloadURL  https://raw.githubusercontent.com/CanasSimon/dashboard-unfucker/main/unfucker.user.js
+// @updateURL    https://raw.githubusercontent.com/CanasSimon/dashboard-unfucker/main/unfucker.user.js
+// @require      https://code.jquery.com/jquery-3.6.4.min.js
 // @run-at       document-start
 // ==/UserScript==
 
@@ -16,7 +17,7 @@
 const $ = window.jQuery;
 
 const main = async function (nonce) {
-  const version = '5.7.1';
+  const version = '6.0.0';
   const match = [
     '',
     'dashboard',
@@ -31,6 +32,7 @@ const main = async function (nonce) {
     'explore',
     'reblog'
   ];
+
   let state = window.___INITIAL_STATE___;
   let configPreferences = {
     lastVersion: version,
@@ -166,6 +168,7 @@ const main = async function (nonce) {
     const tr = string => `${window.tumblr.languageData.translations[string] || string}`;
     return { keyToClasses, keyToCss, tr };
   };
+
   const style = $str(`
     <style nonce="${nonce}">
       #base-container > div[class]:not(#adBanner) > div:first-child {
@@ -593,7 +596,7 @@ const main = async function (nonce) {
             object-fit: cover;
             visibility: visible;
           }
-          
+
           .customLabelContainer {
             white-space: nowrap;
             border-radius: 4px;
@@ -673,6 +676,7 @@ const main = async function (nonce) {
             min-width: 0;
             max-width: none !important;
           }
+
           ${keyToCss('main')}:not(${keyToCss('body')} > ${keyToCss('main')}) {
             top: -100px;
             padding-top: 100px;
@@ -685,7 +689,9 @@ const main = async function (nonce) {
             top: 0;
             position: relative;
           }
-          ${keyToCss('postColumn')} { max-width: calc(100% - 85px); }
+
+          /* TO BE REMOVED LATER UNLESS I FIGURE OUT WHAT THIS WAS FOR (lol) */
+          /*${keyToCss('postColumn')} { max-width: calc(100% - 85px); }
           ${keyToCss('post')}, ${keyToCss('post')} > * { max-width: 100%; }
           ${keyToCss('cell')},
           ${keyToCss('link')},
@@ -696,9 +702,10 @@ const main = async function (nonce) {
           ${keyToCss('queueSettings')} {
             width: calc(100% - 85px);
             box-sizing: border-box;
-          }
+          }*/
+          /***************************************************/
 
-          ${keyToCss('postColumn')} > ${keyToCss('bar')}, 
+          ${keyToCss('postColumn')} > ${keyToCss('bar')},
             ${keyToCss('activityPopover')} ${keyToCss('selectorPopover')},
             ${keyToCss('tabManagement')}, ${keyToCss('selectorPopover')}:has(${keyToCss('blogsList')}),
             [data-timeline] article,
@@ -785,10 +792,20 @@ const main = async function (nonce) {
         '무제', // ko
         '无标题', // zh
         'Tanpa judul', // id
-        'शीर्षकहीन' // hi
+		'शीर्षकहीन' // hi
       ];
 
-      const userName = state.queries.queries[0].state.data.user.name;
+	// New Additions
+        const getUserinfo = async function () {
+            const userinfo = await window.tumblr.apiFetch("/v2/user/info");
+
+            return { userinfo };
+        };
+
+      //const userName = state.queries.queries[0].state.data.user.name;
+      //const userinfo = getUserinfo();
+      //const userName = userinfo.response.user.name;
+      const userName = 'ClangPan';
 
       const hexToRgb = (hex = '') => {
         hex = hex.replace(/^#?([a-f\d])([a-f\d])([a-f\d])$/i, (m, r, g, b) => {
@@ -858,8 +875,8 @@ const main = async function (nonce) {
                               https://api.tumblr.com/v2/blog/${name}/avatar/128 128w,
                               https://api.tumblr.com/v2/blog/${name}/avatar/512 512w"
                       sizes="64px"
-                      alt="${tr("Avatar")}" 
-                      style="width: 64px; height: 64px;" 
+                      alt="${tr("Avatar")}"
+                      style="width: 64px; height: 64px;"
                       loading="eager">
                     </div>
                   </div>
@@ -1005,7 +1022,7 @@ const main = async function (nonce) {
             if (configPreferences.highlightLikelyBots.value && type === 'follower') {
               window.tumblr.apiFetch(`/v2/blog/${fromTumblelogUuid}/info`).then(response => {
                 const { title, name, posts, likes } = response.response.blog;
-                if (untitledStrings.includes(title) 
+                if (untitledStrings.includes(title)
                 && ([0,1].includes(posts) || likes === 0)
                 || (name === title && posts === 1)) {
                   hide(note.querySelector('.customLabelContainer'));
@@ -1134,7 +1151,7 @@ const main = async function (nonce) {
               #messaging-${otherParticipantName} ${keyToCss('messageText')}:not(${keyToCss('ownMessage')}) ${keyToCss('messageHeader')}::before { content: "${otherParticipantName}"; }
               #messaging-${otherParticipantName} ${keyToCss('statusWithCaption')} { color: ${linkColor} !important; }
               #messaging-${otherParticipantName} ${keyToCss('timestamp')} { color: rgba(${tsColor},.6) }
-              #messaging-${otherParticipantName} ${keyToCss('name')}, #messaging-${otherParticipantName} ${keyToCss('description')}, 
+              #messaging-${otherParticipantName} ${keyToCss('name')}, #messaging-${otherParticipantName} ${keyToCss('description')},
               #messaging-${otherParticipantName} ${keyToCss('descriptionContainer')} { color: rgb(${tsColor}) !important; }
               #messaging-${otherParticipantName} ${keyToCss('messageText')}, #messaging-${otherParticipantName} ${keyToCss('messagePost')} ${keyToCss('header')},
               #messaging-${otherParticipantName} ${keyToCss('headerPreview')} ${keyToCss('action')} {
@@ -1259,7 +1276,7 @@ const main = async function (nonce) {
               else mutationManager.stop(labelCells);
             }
             break;
-          case '__originalHeaders': 
+          case '__originalHeaders':
             if (value) {
               addUserPortrait();
               mutationManager.start(fixHeader, postSelector);
@@ -1381,10 +1398,10 @@ const main = async function (nonce) {
       };
       const initialChecks = () => {
         if ($a('#__m').length) { // initial status checks to determine whether to inject or not
-          console.log('no need to unfuck');
+          console.log('No need to unfuck');
           return false;
         } else {
-          console.log('unfucking dashboard...');
+          console.log('Unfucking dashboard...');
           return true;
         }
       };
@@ -1401,7 +1418,7 @@ const main = async function (nonce) {
         const menuShell = $str(`
           <div id="__m">
           <div id="__in">
-            <h1>dashboard unfucker v${version}</h1>
+            <h1>Dashboard Unfucker v${version}</h1>
             <button id="__ab">
               <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" role="presentation" style="--icon-color-primary: rgba(var(--white-on-dark), 0.65);">
                 <use href="#managed-icon__ellipsis"></use>
@@ -1438,13 +1455,13 @@ const main = async function (nonce) {
         </div>
         `);
         const info = [
-          { url: 'https://github.com/enchanted-sword/dashboard-unfucker', text: 'source' },
-          { url: 'https://github.com/enchanted-sword/dashboard-unfucker/blob/main/changelog.md', text: 'changelog' },
-          { url: 'https://github.com/enchanted-sword/dashboard-unfucker/issues/', text: 'report a bug' },
-          { url: 'https://raw.githubusercontent.com/enchanted-sword/dashboard-unfucker/main/unfucker.user.js', text: 'update' },
-          { url: 'https://tumblr.com/dragongirlsnout', text: 'my tumblr!' },
-          { url: 'https://www.paypal.com/paypalme/dragongirled', text: 'support my work!' },
-          { url: 'https://www.tumblr.com/dragongirlsnout/742942435707109376/with-regards-to-recent-events', text: 'learn why this extension is no longer being developed' }
+          { url: 'https://github.com/enchanted-sword/dashboard-unfucker', text: 'Source' },
+          { url: 'https://github.com/enchanted-sword/dashboard-unfucker/blob/main/changelog.md', text: 'Changelog' },
+          { url: 'https://github.com/enchanted-sword/dashboard-unfucker/issues/', text: 'Report a bug' },
+          { url: 'https://raw.githubusercontent.com/enchanted-sword/dashboard-unfucker/main/unfucker.user.js', text: 'Update' },
+          { url: 'https://tumblr.com/dragongirlsnout', text: "Original author's Tumblr!" },
+          { url: 'https://tumblr.com/clangpan', text: "My!! Tumblr!" },
+          { url: 'https://www.paypal.com/paypalme/dragongirled', text: 'Support the original author!' }
         ];
 
         const infoList = menuShell.querySelector('#__am');
@@ -1454,33 +1471,33 @@ const main = async function (nonce) {
           </li>
         `);
         const configs = {
-          hideDashboardTabs: 'hide dashboard tabs',
-          collapseCaughtUp: "collapse the 'changes', 'staff picks', etc. carousel",
-          hideRecommendedBlogs: 'hide recommended blogs',
-          hideRecommendedTags: 'hide recommended tags',
-          originalHeaders: 'revert the post header design and re-add user avatars beside posts',
-          hideTumblrRadar: 'hide tumblr radar',
-          hideExplore: 'hide explore',
-          hideTumblrShop: 'hide tumblr shop',
-          hideBadges: 'hide badges',
-          highlightLikelyBots: 'highlight likely bots in activity feed',
-          showFollowingLabel: 'show who follows you in the activity feed',
-          displayVoteCounts: 'display exact vote counts on poll answers',
-          votelessResults: 'display poll results without voting',
-          disableScrollingAvatars: 'disable avatars scrolling with posts',
-          revertActivityFeedRedesign: 'revert activity feed redesign',
-          revertMessagingRedesign: 'revert messaging redesign',
-          contentPositioning: 'content positioning',
-          contentWidth: 'content width',
-          messagingScale: 'messaging window scale',
-          disableTumblrDomains: 'disable tumblr domains',
-          revertSearchbarRedesign: 'revert searchbar update',
-          enableCustomTabs: 'enable customizable dashboard tabs',
-          enableReblogPolls: 'enable adding polls to reblogs',
-          disableTagNag: 'disable "post without tags" nag',
-          reAddHomeNotifications: 're-add unread post notifications to the corner of the home icon',
-          showNsfwPosts: 'show hidden NSFW posts in the timeline',
-          originalEditorHeaders: 'revert the post editor header design'
+          hideDashboardTabs: 'Hide dashboard tabs',
+          collapseCaughtUp: "Collapse the 'changes', 'staff picks', etc. carousel",
+          hideRecommendedBlogs: 'Hide recommended blogs',
+          hideRecommendedTags: 'Hide recommended tags',
+          originalHeaders: 'Revert the post header design and re-add user avatars beside posts',
+          hideTumblrRadar: 'Hide tumblr radar',
+          hideExplore: 'Hide explore',
+          hideTumblrShop: 'Hide tumblr shop',
+          hideBadges: 'Hide badges',
+          highlightLikelyBots: 'Highlight likely bots in activity feed',
+          showFollowingLabel: 'Show who follows you in the activity feed',
+          displayVoteCounts: 'Display exact vote counts on poll answers',
+          votelessResults: 'Display poll results without voting',
+          disableScrollingAvatars: 'Disable avatars scrolling with posts',
+          revertActivityFeedRedesign: 'Revert activity feed redesign',
+          revertMessagingRedesign: 'Revert messaging redesign',
+          contentPositioning: 'Content positioning',
+          contentWidth: 'Content width',
+          messagingScale: 'Messaging window scale',
+          disableTumblrDomains: 'Disable Tumblr domains',
+          revertSearchbarRedesign: 'Revert searchbar update',
+          enableCustomTabs: 'Enable customizable dashboard tabs',
+          enableReblogPolls: 'Enable adding polls to reblogs',
+          disableTagNag: 'Disable "post without tags" nag',
+          reAddHomeNotifications: 'Re-add unread post notifications to the corner of the home icon',
+          showNsfwPosts: 'Show hidden NSFW posts in the timeline',
+          originalEditorHeaders: 'Revert the post editor header design'
         };
         const configEntry = (obj = {}) => {
           const entry = [];
@@ -1498,11 +1515,11 @@ const main = async function (nonce) {
                 <ul class="submenu">
                   <li>
                     <span>use blog colors</span>
-                    <input 
-                      class="subConfigInput" 
-                      type="radio" 
-                      id="__messaging1" 
-                      name="revertMessagingRedesign" 
+                    <input
+                      class="subConfigInput"
+                      type="radio"
+                      id="__messaging1"
+                      name="revertMessagingRedesign"
                       index="1"
                       ${obj.style === '1' ? 'checked' : ''}
                     >
@@ -1510,11 +1527,11 @@ const main = async function (nonce) {
                   </li>
                   <li>
                     <span>use theme colors</span>
-                    <input 
-                      class="subConfigInput" 
-                      type="radio" 
-                      id="__messaging2" 
-                      name="revertMessagingRedesign" 
+                    <input
+                      class="subConfigInput"
+                      type="radio"
+                      id="__messaging2"
+                      name="revertMessagingRedesign"
                       index="2"
                       ${obj.style === '2' ? 'checked' : ''}
                     >
@@ -1522,12 +1539,12 @@ const main = async function (nonce) {
                   </li>
                   <li active="${obj.style === '3'}">
                     <span>use custom colors</span>
-                    <input 
-                      class="subConfigInput" 
-                      type="radio" 
-                      id="__messaging3" 
-                      name="revertMessagingRedesign" 
-                      index="3" 
+                    <input
+                      class="subConfigInput"
+                      type="radio"
+                      id="__messaging3"
+                      name="revertMessagingRedesign"
+                      index="3"
                       ${obj.style === '3' ? 'checked' : ''}
                     >
                     <label for="__messaging3">Toggle</label>
@@ -1535,11 +1552,11 @@ const main = async function (nonce) {
                   <ul class="submenu">
                     <li>
                       <span style="flex-basis: 100%;">message color</span>
-                      <input 
-                        class="textInput msgHexSelect" 
-                        type="text" 
-                        placeholder="${obj.messageColor || 'f0f0f0'}" 
-                        pattern="[a-f\\d]{6}" 
+                      <input
+                        class="textInput msgHexSelect"
+                        type="text"
+                        placeholder="${obj.messageColor || 'f0f0f0'}"
+                        pattern="[a-f\\d]{6}"
                         maxlength="6"
                         name="messageColor"
                       >
@@ -1547,11 +1564,11 @@ const main = async function (nonce) {
                     </li>
                     <li>
                       <span style="flex-basis: 100%;">background color</span>
-                      <input 
-                        class="textInput msgHexSelect" 
-                        type="text" 
-                        placeholder="${obj.backgroundColor || 'ffffff'}" 
-                        pattern="[a-f\\d]{6}" 
+                      <input
+                        class="textInput msgHexSelect"
+                        type="text"
+                        placeholder="${obj.backgroundColor || 'ffffff'}"
+                        pattern="[a-f\\d]{6}"
                         maxlength="6"
                         name="backgroundColor"
                       >
@@ -1559,11 +1576,11 @@ const main = async function (nonce) {
                     </li>
                     <li>
                       <span style="flex-basis: 100%;">text color</span>
-                      <input 
-                        class="textInput msgHexSelect" 
-                        type="text" 
-                        placeholder="${obj.textColor || '121212'}" 
-                        pattern="[a-f\\d]{6}" 
+                      <input
+                        class="textInput msgHexSelect"
+                        type="text"
+                        placeholder="${obj.textColor || '121212'}"
+                        pattern="[a-f\\d]{6}"
                         maxlength="6"
                         name="textColor"
                       >
@@ -1793,7 +1810,7 @@ const main = async function (nonce) {
         featureStyles.buildScalable('__ms', `
           ${keyToCss('conversationWindow')} {
             border-radius: 5px;
-            width: calc(280px * $NUM); 
+            width: calc(280px * $NUM);
             height: calc(500px * $NUM);
             max-height: calc(100vh - 80px) !important;
           }
@@ -1824,7 +1841,7 @@ const main = async function (nonce) {
             height: 48px !important;
           }
         `, `${keyToCss('conversationWindow')} {
-          width: calc(400px * $NUM); 
+          width: calc(400px * $NUM);
           height: calc(560px * $NUM);
           max-height: calc(100vh - 80px) !important;
         }`, configPreferences.revertMessagingRedesign.value, configPreferences.messagingScale.value);
@@ -1987,8 +2004,8 @@ const main = async function (nonce) {
         console.log('dashboard fixed!');
       };
 
-      console.info(JSON.parse(atob(state.obfuscatedFeatures)));
-      console.info(featureSet);
+      //console.info(JSON.parse(atob(state.obfuscatedFeatures)));
+      //console.info(featureSet);
 
       unfuck();
 
