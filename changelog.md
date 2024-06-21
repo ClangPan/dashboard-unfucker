@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.0.1
+- Just fixing some links
+
 ## v6.0.0
 - We're so back
 - The script works again! Kinda.
