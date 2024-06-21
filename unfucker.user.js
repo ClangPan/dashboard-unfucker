@@ -2,13 +2,13 @@
 // @name         dashboard unfucker
 // @version      6.0.0
 // @description  no more shitty twitter ui for pc
+// @author       ClangPan
 // @author       dragongirlsnout
-// @author       CanasSimon
 // @match        https://www.tumblr.com/*
 // @grant        none
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tumblr.com
-// @downloadURL  https://raw.githubusercontent.com/CanasSimon/dashboard-unfucker/main/unfucker.user.js
-// @updateURL    https://raw.githubusercontent.com/CanasSimon/dashboard-unfucker/main/unfucker.user.js
+// @downloadURL  https://raw.githubusercontent.com/ClangPan/dashboard-unfucker/main/unfucker.user.js
+// @updateURL    https://raw.githubusercontent.com/ClangPan/dashboard-unfucker/main/unfucker.user.js
 // @require      https://code.jquery.com/jquery-3.6.4.min.js
 // @run-at       document-start
 // ==/UserScript==
@@ -206,7 +206,7 @@ const main = async function (nonce) {
       if (timelineSelector.test(input) && dummyValue && localAddedPostFlag && typeof window.tumblr.apiFetch !== 'undefined') {
         for (const id of addedPosts) {
           let addedPost;
-          await window.tumblr.apiFetch(`/v2/blog/dragongirlsnout/posts/${id}?fields[blogs]=name,avatar,title,url,blog_view_url,is_adult,description_npf,uuid,can_be_followed,?followed`).then(response => {
+          await window.tumblr.apiFetch(`/v2/blog/clangpan/posts/${id}?fields[blogs]=name,avatar,title,url,blog_view_url,is_adult,description_npf,uuid,can_be_followed,?followed`).then(response => {
             if (response && response?.meta.status === 200) {
               const data = response.response;
               addedPost = data;
