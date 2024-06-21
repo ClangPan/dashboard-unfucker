@@ -6,7 +6,7 @@ Unfucks the twitterification of tumblr's dashboard by reverting it to the old la
 The script works with and is fully tested with Tampermonkey, Tampermonkey Beta, Greasemonkey, and Violentmonkey.
 - Install any one of the script injector extensions listed above.
 - Click on [unfucker.user.js](https://github.com/ClangPan/dashboard-unfucker/raw/main/unfucker.user.js) to install or update.
-- [VERY TEMPORARY HACKY FIX] Install the "Old Tumblr Dashboard (Userstyle)" Stylus UserStyle so the interface isn't broken all over. I still need to fix stuff. I know. Don't complain, I'll fix it eventually.
+- [VERY TEMPORARY HACKY FIX] Install the ["Old Tumblr Dashboard (Userstyle)"](https://userstyles.world/style/11286/old-tumblr-dashboard-userstyle) Stylus UserStyle so the interface isn't broken all over. I still need to fix stuff. I know. Don't complain, I'll fix it eventually.
 
 ## Features
 The script uses window property flags to completely disable the vertical navigation layout, as well as Tumblr Live, the Tumblr Shop, and Tumblr Domains.
