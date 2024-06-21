@@ -17,7 +17,7 @@
 const $ = window.jQuery;
 
 const main = async function (nonce) {
-  const version = '6.0.0';
+  const version = '6.0.1';
   const match = [
     '',
     'dashboard',
@@ -1455,10 +1455,10 @@ const main = async function (nonce) {
         </div>
         `);
         const info = [
-          { url: 'https://github.com/enchanted-sword/dashboard-unfucker', text: 'Source' },
-          { url: 'https://github.com/enchanted-sword/dashboard-unfucker/blob/main/changelog.md', text: 'Changelog' },
-          { url: 'https://github.com/enchanted-sword/dashboard-unfucker/issues/', text: 'Report a bug' },
-          { url: 'https://raw.githubusercontent.com/enchanted-sword/dashboard-unfucker/main/unfucker.user.js', text: 'Update' },
+          { url: 'https://github.com/ClangPan/dashboard-unfucker', text: 'Source' },
+          { url: 'https://github.com/ClangPan/dashboard-unfucker/blob/main/changelog.md', text: 'Changelog' },
+          { url: 'https://github.com/ClangPan/dashboard-unfucker/issues/', text: 'Report a bug' },
+          { url: 'https://raw.githubusercontent.com/ClangPan/dashboard-unfucker/main/unfucker.user.js', text: 'Update' },
           { url: 'https://tumblr.com/dragongirlsnout', text: "Original author's Tumblr!" },
           { url: 'https://tumblr.com/clangpan', text: "My!! Tumblr!" },
           { url: 'https://www.paypal.com/paypalme/dragongirled', text: 'Support the original author!' }
