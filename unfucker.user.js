@@ -90,6 +90,8 @@ const main = async function (nonce) {
     if (elem.length) elem.forEach(function (item) { item.style.display = null; });
     else elem.style.display = null;
   };
+
+  //Toggles an HTML component
   const toggle = (elem, toggle = 'ignore') => {
     if (elem && elem.length !== 0) {
       if (toggle === 'ignore') {
@@ -108,6 +110,8 @@ const main = async function (nonce) {
       elem.style[property] = properties[property];
     }
   };
+
+  //Finds an HTML component inside another
   const find = (nodeList, selector) => {
     let elem;
     nodeList.forEach(currentValue => {
@@ -166,7 +170,8 @@ const main = async function (nonce) {
     const keyToClasses = (...keys) => keys.flatMap(key => cssMap[key]).filter(Boolean);
     const keyToCss = (...keys) => `:is(${keyToClasses(...keys).map(className => `.${className}`).join(', ')})`;
     const tr = string => `${window.tumblr.languageData.translations[string] || string}`;
-    return { keyToClasses, keyToCss, tr };
+    const userinfo = await window.tumblr.apiFetch("/v2/user/info");
+    return { keyToClasses, keyToCss, tr, userinfo };
   };
 
   const style = $str(`
@@ -295,8 +300,10 @@ const main = async function (nonce) {
     configurable: true
   });
   document.head.appendChild(style);
+
+  //Fires when the page is loaded
   document.addEventListener('DOMContentLoaded', () => {
-    getUtilities().then(({ keyToCss, keyToClasses, tr }) => {
+    getUtilities().then(({ keyToCss, keyToClasses, tr, userinfo }) => {
       let windowWidth = window.innerWidth;
       let safeOffset = (windowWidth - 1000) / 2;
       if (Math.abs(configPreferences.contentPositioning.value) > safeOffset) configPreferences.contentPositioning.value = 0;
@@ -792,20 +799,11 @@ const main = async function (nonce) {
         '무제', // ko
         '无标题', // zh
         'Tanpa judul', // id
-		'शीर्षकहीन' // hi
+        'शीर्षकहीन' // hi
       ];
 
-	// New Additions
-        const getUserinfo = async function () {
-            const userinfo = await window.tumblr.apiFetch("/v2/user/info");
-
-            return { userinfo };
-        };
-
-      //const userName = state.queries.queries[0].state.data.user.name;
-      //const userinfo = getUserinfo();
-      //const userName = userinfo.response.user.name;
-      const userName = 'ClangPan';
+      //Retrieve the UserName
+      const userName = userinfo.response.user.name;
 
       const hexToRgb = (hex = '') => {
         hex = hex.replace(/^#?([a-f\d])([a-f\d])([a-f\d])$/i, (m, r, g, b) => {
@@ -1245,6 +1243,7 @@ const main = async function (nonce) {
         }
       });
 
+      //Handles the events of the config checkboxes
       const checkboxEvent = (id, value) => {
         switch (id) {
           case '__hideDashboardTabs':
@@ -1297,10 +1296,10 @@ const main = async function (nonce) {
             toggle(find($a(keyToCss('sidebarItem')), keyToCss('radar')), !value);
             break;
           case '__hideExplore':
-            toggle(find($a(keyToCss('menuContainer')), 'use[href="#managed-icon__explore"]'), !value);
+            toggle(find($a(keyToCss('navItem')), 'use[href="#managed-icon__explore"]'), !value);
             break;
           case '__hideTumblrShop':
-            toggle(find($a(keyToCss('menuContainer')), 'use[href="#managed-icon__shop"]'), !value);
+            toggle(find($a(keyToCss('targetPopoverWrapper')), 'use[href="#managed-icon__shop"]').parentElement, !value);
             break;
           case '__hideBadges':
             featureStyles.toggle('__bs', value);
@@ -1472,13 +1471,13 @@ const main = async function (nonce) {
         `);
         const configs = {
           hideDashboardTabs: 'Hide dashboard tabs',
-          collapseCaughtUp: "Collapse the 'changes', 'staff picks', etc. carousel",
+          collapseCaughtUp: "Hide the 'changes', 'Staff picks', etc. carousel",
           hideRecommendedBlogs: 'Hide recommended blogs',
           hideRecommendedTags: 'Hide recommended tags',
           originalHeaders: 'Revert the post header design and re-add user avatars beside posts',
           hideTumblrRadar: 'Hide tumblr radar',
-          hideExplore: 'Hide explore',
-          hideTumblrShop: 'Hide tumblr shop',
+          hideExplore: 'Hide Explore',
+          hideTumblrShop: 'Hide Tumblr Shop',
           hideBadges: 'Hide badges',
           highlightLikelyBots: 'Highlight likely bots in activity feed',
           showFollowingLabel: 'Show who follows you in the activity feed',
@@ -1494,7 +1493,7 @@ const main = async function (nonce) {
           revertSearchbarRedesign: 'Revert searchbar update',
           enableCustomTabs: 'Enable customizable dashboard tabs',
           enableReblogPolls: 'Enable adding polls to reblogs',
-          disableTagNag: 'Disable "post without tags" nag',
+          disableTagNag: 'Disable the "post without tags" nag',
           reAddHomeNotifications: 'Re-add unread post notifications to the corner of the home icon',
           showNsfwPosts: 'Show hidden NSFW posts in the timeline',
           originalEditorHeaders: 'Revert the post editor header design'
@@ -1663,6 +1662,8 @@ const main = async function (nonce) {
 
         return menuShell;
       };
+
+      //Init the script using the user preferences
       const initializePreferences = () => {
         mutationManager.start(fixMasonryNotes, masonryNotesSelector);
 
@@ -1719,9 +1720,11 @@ const main = async function (nonce) {
           });
         }
 
-        waitFor(keyToCss('menuRight')).then(() => {
-          toggle(find($a(keyToCss('menuContainer')), 'use[href="#managed-icon__explore"]'), !configPreferences.hideExplore.value);
-          toggle(find($a(keyToCss('menuContainer')), 'use[href="#managed-icon__shop"]'), !configPreferences.hideTumblrShop.value);
+        //Toggles the Explore and Shop icon
+        waitFor(keyToCss('navigationLinks')).then(() => {
+          toggle(find($a(keyToCss('navItem')), 'use[href="#managed-icon__explore"]'), !configPreferences.hideExplore.value);
+          //We use "parentElement" here due to the hierarchy being different that the other buttons
+          toggle(find($a(keyToCss('targetPopoverWrapper')), 'use[href="#managed-icon__shop"]').parentElement, !configPreferences.hideTumblrShop.value);
         });
 
         if (configPreferences.highlightLikelyBots.value || configPreferences.showFollowingLabel.value) {

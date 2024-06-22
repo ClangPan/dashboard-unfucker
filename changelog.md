@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.0.2
+- Removed a temporary hardcode
+- Fixed the "Hide Explore" and "Hide Tumblr Shop" buttons
+- A few minor changes in the text
+
 ## v6.0.1
 - Just fixing some links
 
