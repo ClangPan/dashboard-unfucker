@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.0.3
+- Fixed some broken formatting at parts
+- Tried to fix the window flags, unsuccessfully
+- Broken features have for now been disabled to avoid confusion
+
 ## v6.0.2
 - Removed a temporary hardcode
 - Fixed the "Hide Explore" and "Hide Tumblr Shop" buttons
