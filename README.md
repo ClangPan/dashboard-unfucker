@@ -1,6 +1,7 @@
 # NOTICE: As of 22/06/2024, this script is now "functional"; a few features don't work yet or aren't configurable, and the styling is broken, but you should be able to use it like the old one! Enjoy. Please forward any issues.
 # dashboard-unfucker
 Unfucks the twitterification of tumblr's dashboard by reverting it to the old layout as closely as possible while also offering control over other aspects of the UI.
+Original credit goes to @enchanted-sword/[dragongirlsnout](https://tumblr.com/dragongirlsnout)
 
 ## Installation
 The script works with and is fully tested with Tampermonkey, Tampermonkey Beta, Greasemonkey, and Violentmonkey.
@@ -109,3 +110,6 @@ Certain posts flagged as NSFW by Tumblr are delivered by internal API requests, 
 - The script apparently conflicts with HTTPS Everywhere extension on Firefox.
 - The script may conflict with Legacy & New XKit. However, it works just fine with XKit Rewritten.
 - The header may rarely appear larger than normal. The exact cause of this is not known, but it seems to be fixed permanently by just searching something in the searchbar.
+
+## Credits / Thanks
+- @enchanted-sword/[dragongirlsnout](https://tumblr.com/dragongirlsnout), the original creator of the script
