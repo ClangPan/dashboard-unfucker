@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         dashboard unfucker
-// @version      6.0.2
+// @version      6.0.3
 // @description  no more shitty twitter ui for pc
 // @author       ClangPan
 // @author       dragongirlsnout
@@ -17,7 +17,9 @@
 const $ = window.jQuery;
 
 const main = async function (nonce) {
-  const version = '6.0.2';
+  const version = '6.0.3';
+
+  //Supported pages
   const match = [
     '',
     'dashboard',
@@ -33,10 +35,12 @@ const main = async function (nonce) {
     'reblog'
   ];
 
+  //State of the window
   let state = window.___INITIAL_STATE___;
+
+  //Every value available for the config
   let configPreferences = {
     lastVersion: version,
-    showCta: true,
     hideDashboardTabs: { advanced: false, type: 'checkbox', value: '' },
     collapseCaughtUp: { advanced: false, type: 'checkbox', value: '' },
     hideRecommendedBlogs: { advanced: false, type: 'checkbox', value: '' },
@@ -51,7 +55,6 @@ const main = async function (nonce) {
     contentPositioning: { advanced: false, type: 'range', value: 0 },
     contentWidth: { advanced: false, type: 'range', value: 990 },
     messagingScale: { advanced: false, type: 'range', value: 1 },
-    disableTumblrDomains: { advanced: true, type: 'checkbox', value: 'checked' },
     revertActivityFeedRedesign: { advanced: false, type: 'checkbox', value: 'checked' },
     revertMessagingRedesign: {
       advanced: false,
@@ -62,17 +65,20 @@ const main = async function (nonce) {
       backgroundColor: 'ffffff',
       textColor: '121212'
     },
-    revertSearchbarRedesign: { advanced: true, type: 'checkbox', value: 'checked' },
-    enableCustomTabs: { advanced: true, type: 'checkbox', value: '' },
-    enableReblogPolls: { advanced: true, type: 'checkbox', value: '' },
     disableTagNag: { advanced: false, type: 'checkbox', value: 'checked' },
-    reAddHomeNotifications: { advanced: true, type: 'checkbox', value: 'checked' },
     displayVoteCounts: { advanced: false, type: 'checkbox', value: '' },
     votelessResults : { advanced: false, type: 'checkbox', value: ''},
-    showNsfwPosts: { advanced: true, type: 'checkbox', value: '' },
     disableScrollingAvatars: { advanced: false, type: 'checkbox', value: '' },
-    originalEditorHeaders: { advanced: false, type: 'checkbox', value: '' }
+    originalEditorHeaders: { advanced: false, type: 'checkbox', value: '' },
+    //TODO: Disabled for now since it no work
+    //disableTumblrDomains: { advanced: true, type: 'checkbox', value: 'checked' },
+    //revertSearchbarRedesign: { advanced: true, type: 'checkbox', value: 'checked' },
+    //enableCustomTabs: { advanced: true, type: 'checkbox', value: '' },
+    //enableReblogPolls: { advanced: true, type: 'checkbox', value: '' },
+    //reAddHomeNotifications: { advanced: true, type: 'checkbox', value: 'checked' },
+    //showNsfwPosts: { advanced: true, type: 'checkbox', value: '' },
   };
+
   let pathname = window.location.pathname.split('/')[1];
   const $a = selector => document.querySelectorAll(selector);
   const $ = selector => document.querySelector(selector);
@@ -82,6 +88,8 @@ const main = async function (nonce) {
     elem = elem.firstElementChild;
     return elem;
   };
+
+  //Show/Hide an HTML node
   const hide = function (elem) {
     if (elem.length) elem.forEach(function (item) { item.style.display = 'none'; });
     else elem.style.display = 'none';
@@ -105,13 +113,15 @@ const main = async function (nonce) {
       }
     }
   };
+
+  //Represents a CSS entry
   const css = (elem, properties = {}) => {
     for (const property in properties) {
       elem.style[property] = properties[property];
     }
   };
 
-  //Finds an HTML component inside another
+  //Finds an HTML node inside another
   const find = (nodeList, selector) => {
     let elem;
     nodeList.forEach(currentValue => {
@@ -121,9 +131,12 @@ const main = async function (nonce) {
     });
     return elem;
   };
+
+  //Remove one or multiple HMTL node(s)
   const remove = (nodeList) => {
     nodeList.forEach(currentValue => { currentValue.remove(); });
   };
+
   const delay = ms => new Promise(resolve => setTimeout(() => resolve(), ms));
   const matchPathname = () => match.includes(pathname);
   const isDashboard = () => ['dashboard', ''].includes(pathname);
@@ -148,19 +161,18 @@ const main = async function (nonce) {
       );
     }
   };
-  const modifyObfuscatedFeatures = (obfuscatedFeatures, featureSet) => {
-    const obf = JSON.parse(atob(obfuscatedFeatures));
-    for (const x of featureSet) {
-      obf[x.name] = x.value;
-    }
-    return btoa(JSON.stringify(obf));
-  };
+
+  //Wait for element to be available
   const waitFor = (selector, scope = document, retried = 0) => new Promise((resolve) => {
     if (scope.querySelector(selector)) { resolve(); } else if (retried < 50) { window.requestAnimationFrame(() => waitFor(selector, scope, retried + 1).then(resolve)); }
   });
+
+  //Updates the configs
   const updatePreferences = () => {
     window.localStorage.setItem('configPreferences', JSON.stringify(configPreferences));
   };
+
+  //Get and process the CSS map
   const getUtilities = async function () {
     let retries = 0;
     while (retries++ < 1000 && (typeof window.tumblr === 'undefined' || typeof window.tumblr.getCssMap === 'undefined')) {
@@ -170,10 +182,10 @@ const main = async function (nonce) {
     const keyToClasses = (...keys) => keys.flatMap(key => cssMap[key]).filter(Boolean);
     const keyToCss = (...keys) => `:is(${keyToClasses(...keys).map(className => `.${className}`).join(', ')})`;
     const tr = string => `${window.tumblr.languageData.translations[string] || string}`;
-    const userinfo = await window.tumblr.apiFetch("/v2/user/info");
-    return { keyToClasses, keyToCss, tr, userinfo };
+    return { keyToClasses, keyToCss, tr };
   };
 
+  //CSS for nonce
   const style = $str(`
     <style nonce="${nonce}">
       #base-container > div[class]:not(#adBanner) > div:first-child {
@@ -183,7 +195,7 @@ const main = async function (nonce) {
         position: sticky !important;
         top: 0 !important;
         min-height: unset !important;
-        background-color: RGB(var(--navy));
+        background-color: var(--navy);
       }
     </style>
   `);
@@ -193,18 +205,21 @@ const main = async function (nonce) {
   const addedPosts = [
   ];
 
+  //Utilities for fetch
   const timelineSelector = /\/api\/v2\/timeline/;
   const peeprSelector = new RegExp(`/\/api\/v2\/blog\/${pathname}\/posts/`);
   const isPostFetch = input => {
     if (timelineSelector.test(input) || peeprSelector.test(input)) return true;
     else return false;
   };
+
+  //Possibly useless? Keeping it for now
   const oldFetch = window.fetch;
   window.fetch = async (input, options) => {
     const response = await oldFetch(input, options);
     let content = await response.text();
-    if (isPostFetch(input) && (configPreferences.showNsfwPosts.value || dummyValue)) {
-      console.info(`modified data fetched from ${input}`);
+    if (isPostFetch(input) /*&& (configPreferences.showNsfwPosts.value || dummyValue)*/) {
+      console.info(`Modified data fetched from ${input}`);
       content = JSON.parse(content);
       const elements = content.response.timeline.elements;
       elements.forEach(function (post) { post.isNsfw = false; });
@@ -232,10 +247,11 @@ const main = async function (nonce) {
     });
   };
 
+  //Reads or create a new config in "localStorage" is it's available
   if (storageAvailable('localStorage')) {
     if (!window.localStorage.getItem('configPreferences') || Array.isArray(JSON.parse(window.localStorage.getItem('configPreferences')))) {
       updatePreferences();
-      console.log('initialized preferences');
+      console.log('Initialized preferences');
     } else {
       const currentPreferences = JSON.parse(window.localStorage.getItem('configPreferences'));
       const currentKeys = Object.keys(currentPreferences);
@@ -256,8 +272,9 @@ const main = async function (nonce) {
     }
   }
 
+  //Display the hidden NSFW posts
   const modifyInitialTimeline = (obj, context) => {
-    if (!obj || !configPreferences.showNsfwPosts.value) return obj;
+    if (!obj /*|| !configPreferences.showNsfwPosts.value*/) return obj;
     else if (context === 'dashboard') {
       obj.dashboardTimeline.response.timeline.elements.forEach(function (post) { post.isNsfw = false; });
     } else if (context === 'peepr') {
@@ -267,18 +284,31 @@ const main = async function (nonce) {
     return obj;
   };
 
+  //Modify the features to inject our special config
+  const modifyObfuscatedFeatures = (obfuscatedFeatures, featureSet) => {
+    const obf = JSON.parse(atob(obfuscatedFeatures));
+    for (const x of featureSet) {
+      obf[x.name] = x.value;
+    }
+    return btoa(JSON.stringify(obf));
+  };
+
+  //The features to enable/disable (the options included in the "Advanced configuration" part)
   const featureSet = [
     { name: 'redpopDesktopVerticalNav', value: false },
-    { name: 'domainsSettings', value: !configPreferences.disableTumblrDomains.value },
+    /*{ name: 'domainsSettings', value: !configPreferences.disableTumblrDomains.value },
     { name: 'improvedSearchTypeahead', value: !configPreferences.revertSearchbarRedesign.value },
     { name: 'configurableTabbedDash', value: !!configPreferences.enableCustomTabs.value },
     { name: 'allowAddingPollsToReblogs', value: !!configPreferences.enableReblogPolls.value },
-    { name: 'redpopUnreadNotificationsOnTab', value: !configPreferences.reAddHomeNotifications.value },
+    { name: 'redpopUnreadNotificationsOnTab', value: !configPreferences.reAddHomeNotifications.value }, TODO: Disabled for now since it no work*/
     { name: 'redpopDesktopVerticalNav', value: false },
     { name: 'crowdsignalPollsNpf', value: true },
     { name: 'crowdsignalPollsCreate', value: true },
     { name: 'adFreeCtaBanner', value: false }
   ];
+
+  //Initial state of the window
+  //TODO: Find a way to fix this
   Object.defineProperty(window, '___INITIAL_STATE___', { // thanks twilight-sparkle-irl!
     set (x) {
       state = x;
@@ -299,11 +329,19 @@ const main = async function (nonce) {
     enumerable: true,
     configurable: true
   });
+
+  //Appends the "nonce" style to the head
   document.head.appendChild(style);
 
   //Fires when the page is loaded
   document.addEventListener('DOMContentLoaded', () => {
-    getUtilities().then(({ keyToCss, keyToClasses, tr, userinfo }) => {
+    //This does not work :(
+    const initialState = document.getElementById("___INITIAL_STATE___");
+    state = JSON.parse(initialState.innerHTML);
+    state = window.___INITIAL_STATE___;
+    initialState.innerHTML = JSON.stringify(state);
+
+    getUtilities().then(({ keyToCss, keyToClasses, tr }) => {
       let windowWidth = window.innerWidth;
       let safeOffset = (windowWidth - 1000) / 2;
       if (Math.abs(configPreferences.contentPositioning.value) > safeOffset) configPreferences.contentPositioning.value = 0;
@@ -319,15 +357,17 @@ const main = async function (nonce) {
       const conversationSelector = '[data-skip-glass-focus-trap]';
       const carouselCellSelector = `[data-cell-id] ${keyToCss('tagCard')}, [data-cell-id] ${keyToCss('blogRecommendation')}, [data-cell-id] ${keyToCss('tagChicletLink')}`;
       const masonryNotesSelector = `[data-timeline]${keyToCss('masonry')} article ${keyToCss('formattedNoteCount')}`;
-      const containerSelector = `${keyToCss('bluespaceLayout')} > ${keyToCss('container')}:not(${keyToCss('mainContentIs4ColumnMasonry')})`;
+      const containerSelector = `${keyToCss('bluespaceLayout')} > ${keyToCss('newDesktopLayout')}:not(${keyToCss('mainContentIs4ColumnMasonry')})`;
 
       const tsKey = 'lastSeenNoTagPromptTsKey';
 
       const newNodes = [];
       const target = document.getElementById('root');
 
+      //Styles the existing elements
       const styleElement = $str(`
         <style id='__s'>
+          /* Config window */
           #__m {
             margin-bottom: 20px;
             position: relative;
@@ -379,20 +419,20 @@ const main = async function (nonce) {
             position: absolute;
           }
           #__in > .__n {
-            color: rgb(var(--accent));
+            color: var(--accent);
             top: -6px;
             left: 220px;
           }
           button .__n {
             content: "";
             border-radius: 50%;
-            border: solid 4px rgb(var(--accent));
+            border: solid 4px var(--accent);
             top: 0px;
             right: -6px;
           }
           .infoHeader {
             color: rgb(var(--navy)) !important;
-            background: rgb(var(--accent));
+            background: var(--accent);
             padding: 12px 12px;
             font-weight: bold;
             margin: 0 4px;
@@ -427,7 +467,7 @@ const main = async function (nonce) {
             border-radius: 7px;
             transition: 0.3s;
           }
-          .configInput:checked + label { background: rgb(var(--accent)); }
+          .configInput:checked + label { background: var(--accent); }
           .configInput:checked + label:after {
             left: calc(100% - 2px);
             transform: translateX(-100%);
@@ -440,7 +480,7 @@ const main = async function (nonce) {
             position: relative;
             height: 12px;
             width: 12px;
-            border: 2px solid rgb(var(--accent));
+            border: 2px solid var(--accent);
             border-radius: 50%;
           }
           .subConfigInput[type="radio"] + label:after {
@@ -452,10 +492,10 @@ const main = async function (nonce) {
             width: 8px;
             border-radius: 50%;
           }
-          .subConfigInput[type="radio"]:checked + label:after {  background: rgb(var(--accent)); }
+          .subConfigInput[type="radio"]:checked + label:after {  background: var(--accent); }
           .subConfigInput[type="radio"]:not(:checked) + label:hover:after {  background: rgba(var(--accent),.3); }
           .textInput {
-            border: 2px solid rgb(var(--accent));
+            border: 2px solid var(--accent);
             border-radius: 3px;
             width: 48px;
           }
@@ -486,7 +526,7 @@ const main = async function (nonce) {
           .configInput[type="range"]:focus { outline: none; }
           .configInput[type="range"]::-webkit-slider-runnable-track,
           .configInput[type="range"]::-moz-range-track {
-            background: rgb(var(--accent));
+            background: var(--accent);
             border-radius: 1rem;
             height: 0.5rem;
           }
@@ -514,7 +554,7 @@ const main = async function (nonce) {
           .iOButton {
             color: rgb(var(--navy));
             width: 49%;
-            background: rgb(var(--accent));
+            background: var(--accent);
             border-radius: var(--border-radius-small);
             font-size: 20px;
             padding: 4px;
@@ -526,13 +566,14 @@ const main = async function (nonce) {
             font-size: 20px;
             color: rgb(var(--black));
             transition: opacity .6s ease-in;
-            background: rgb(var(--accent));
+            background: var(--accent);
             padding: 8px;
             text-align: center;
             border-radius: var(--border-radius-small);
             opacity: 0;
           }
 
+          /* Avatar in header */
           article.__headerFixed header ${keyToCss('communityLabel')} { display: none !important; }
           .__reblogIcon {
             height: 14px;
@@ -549,6 +590,8 @@ const main = async function (nonce) {
             position: absolute !important;
             top: 0 !important;
           }
+
+          /* Sticky avatar next to posts */
           .__stickyContainer {
             color: RGB(var(--white-on-dark));
             height: 100%;
@@ -579,6 +622,7 @@ const main = async function (nonce) {
             word-break: break-word;
             text-decoration: none;
           }
+
           .__targetWrapper {
             width: inherit;
             vertical-align: top;
@@ -604,6 +648,7 @@ const main = async function (nonce) {
             visibility: visible;
           }
 
+          /* Labels inside the activity feed */
           .customLabelContainer {
             white-space: nowrap;
             border-radius: 4px;
@@ -655,6 +700,7 @@ const main = async function (nonce) {
             opacity: 1;
           }
 
+          /* Numerical value of votes in polls */
           .answerVoteCount {
             position: absolute;
             bottom: -2px;
@@ -662,6 +708,7 @@ const main = async function (nonce) {
             font-size: 12px;
           }
 
+          /* Percentage of votes in polls */
           .__percentage {
             position: absolute;
             content: "";
@@ -675,8 +722,8 @@ const main = async function (nonce) {
           #tumblr { --dashboard-tabs-header-height: 0px !important; }
           ${keyToCss('navItem')}:has(use[href="#managed-icon__sparkle"]) { display: none !important; }
           ${keyToCss('bluespaceLayout')} > ${keyToCss('container')} { position: relative; }
-          [data-blog-container], [data-blog-container] ${keyToCss('layout')}, [data-blog-container] ${keyToCss('sidebar')},
-          [data-blog-container] ${keyToCss('sidebarTopContainer')} { width: fit-content !important; }
+          /*[data-blog-container], [data-blog-container] ${keyToCss('layout')}, [data-blog-container] ${keyToCss('sidebar')},
+          [data-blog-container] ${keyToCss('sidebarTopContainer')} { width: fit-content !important; } TODO: Disabled for now since it no work*/
           ${keyToCss('main')} {
             position: relative;
             flex: 1;
@@ -684,24 +731,25 @@ const main = async function (nonce) {
             max-width: none !important;
           }
 
-          ${keyToCss('main')}:not(${keyToCss('body')} > ${keyToCss('main')}) {
+          /*${keyToCss('main')}:not(${keyToCss('body')} > ${keyToCss('main')}) {
             top: -100px;
             padding-top: 100px;
-          }
+          }*/
+
           ${keyToCss('body')} > header,
           ${keyToCss('body')} > ${keyToCss('toolbar')} {
             z-index: 1;
           }
+
           ${keyToCss('tabsHeader')} {
             top: 0;
             position: relative;
           }
 
-          /* TO BE REMOVED LATER UNLESS I FIGURE OUT WHAT THIS WAS FOR (lol) */
-          /*${keyToCss('postColumn')} { max-width: calc(100% - 85px); }
+          ${keyToCss('postColumn')} { max-width: calc(100% - 85px); }
           ${keyToCss('post')}, ${keyToCss('post')} > * { max-width: 100%; }
           ${keyToCss('cell')},
-          ${keyToCss('link')},
+          /*${keyToCss('link')},*/
           ${keyToCss('reblog')},
           ${keyToCss('videoBlock')},
           ${keyToCss('videoBlock')} iframe,
@@ -709,8 +757,7 @@ const main = async function (nonce) {
           ${keyToCss('queueSettings')} {
             width: calc(100% - 85px);
             box-sizing: border-box;
-          }*/
-          /***************************************************/
+          }
 
           ${keyToCss('postColumn')} > ${keyToCss('bar')},
             ${keyToCss('activityPopover')} ${keyToCss('selectorPopover')},
@@ -728,83 +775,13 @@ const main = async function (nonce) {
           figure${keyToCss('anonymous')} { background-image: url(https://assets.tumblr.com/pop/src/assets/images/avatar/anonymous_avatar_96-223fabe0.png) !important; }
 
           ${keyToCss('attribution')} > ${keyToCss('badgeContainer')} { margin-left: 5px; }
-
-          #__cta-close {
-            padding: .5rem;
-            color: rgb(var(--red));
-            border: 1px solid rgb(var(--red));
-            border-radius: .5rem;
-            line-height: 32px;
-            transition: color 0.3s;
-
-            &:hover {
-              background-color: rgb(var(--red));
-              color: rgb(var(--black));
-            }
-          }
-          __cta-div h1 {
-          }
-          .__cta-div h3 {
-            font-size: 20px;
-            line-height: 1.5;
-            font-weight: bold;
-          }
-          .__cta-div p {
-            margin-top: 8px;
-            margin-bottom: 0;
-            line-height: 1.5;
-          }
-          .__cta-div img {
-          }
-          .__cta-div footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-flow: row nowrap;
-            margin-top: 12px;
-            width: 240px;
-          }
-          .__cohost-logo {
-            display: block;
-            height: 2rem;
-            color: white;
-            background-color: rgb(131 37 79);
-            padding: .5rem;
-            border-radius: .5rem;
-          }
-          .__cta-div {
-            padding: 8px;
-            background-color: rgb(var(--white));
-            border-radius: 3px;
-            margin-bottom: 20px;
-            display: flex;
-            flex-flow: column nowrap;
-            align-items: center;
-          }
         </style>
       `);
 
-      const untitledStrings = [
-        'Untitled', // en
-        'Sans titre', // fr
-        'Intitulado', // es
-        'Ohne titel', // de
-        'Senza titolo', // it
-        '無題', // jp
-        'Başlıksız', // tr
-        'Без названия', // ru
-        'Bez tytułu', // pl
-        'Sem título', // pt
-        'Ongetiteld', // nl
-        '무제', // ko
-        '无标题', // zh
-        'Tanpa judul', // id
-        'शीर्षकहीन' // hi
-      ];
-
       //Retrieve the UserName
-      const userName = userinfo.response.user.name;
+      const userName = state.queries.queries[0].state.data.user.name;
 
+      //Several color utilities
       const hexToRgb = (hex = '') => {
         hex = hex.replace(/^#?([a-f\d])([a-f\d])([a-f\d])$/i, (m, r, g, b) => {
           return r + r + g + g + b + b;
@@ -818,6 +795,7 @@ const main = async function (nonce) {
             }
           : null;
       };
+
       const luminance = ({ r, g, b }) => {
         const a = [r, g, b].map(v => {
           v /= 255;
@@ -827,12 +805,15 @@ const main = async function (nonce) {
         });
         return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
       };
+
       const ratio = (lum1, lum2) => lum1 > lum2 ? ((lum2 + 0.05) / (lum1 + 0.05)) : ((lum1 + 0.05) / (lum2 + 0.05));
       const contrast = (hex1, hex2) => {
         const lum1 = luminance(hexToRgb(hex1));
         const lum2 = luminance(hexToRgb(hex2));
         return ratio(lum1, lum2);
       };
+
+      //Returns black or white, depending on which is more readable on the color provided
       const contrastBW = hex => {
         const lum = luminance(hexToRgb(hex));
         const lumBlk = luminance({ r: 12, g: 12, b: 12 });
@@ -842,6 +823,7 @@ const main = async function (nonce) {
         if (ratioBlk < ratioWht) return '12,12,12';
         else return '255,255,255';
       };
+
       const rgbToString = ({ r, g, b }) => `${r},${g},${b}`;
 
       const fetchNpf = obj => {
@@ -858,32 +840,16 @@ const main = async function (nonce) {
         }
       };
 
-      const userAvatar = name => $str(`
-        <div class="__avatarOuter">
-          <div class="__avatarWrapper" role="figure" aria-label="${tr("avatar")}">
-            <span class="__targetWrapper">
-              <a href="https://${name}.tumblr.com/" title="${name}" rel="noopener" role="link" class="__blogLink" tabindex="0">
-                <div class="__avatarInner" style="width: 64px; height: 64px;">
-                  <div class="__avatarWrapperInner">
-                    <div class="__placeholder" style="padding-bottom: 100%;">
-                      <img
-                      class="__avatarImage"
-                      srcset="https://api.tumblr.com/v2/blog/${name}/avatar/64 64w,
-                              https://api.tumblr.com/v2/blog/${name}/avatar/96 96w,
-                              https://api.tumblr.com/v2/blog/${name}/avatar/128 128w,
-                              https://api.tumblr.com/v2/blog/${name}/avatar/512 512w"
-                      sizes="64px"
-                      alt="${tr("Avatar")}"
-                      style="width: 64px; height: 64px;"
-                      loading="eager">
-                    </div>
-                  </div>
-                </div>
-              </a>
-            </span>
-          </div>
-        </div>
+      //HTML for the reblog icon
+      const reblogIcon = () => $str(`
+        <span class="__reblogIcon">
+          <svg xmlns="http://www.w3.org/2000/svg" height="15" width="15" role="presentation" style="--icon-color-primary: rgba(var(--black), 0.65);">
+            <use href="#managed-icon__reblog-compact"></use>
+          </svg>
+        </span>
       `);
+
+      //Reverts the headers avatars to the old style
       const fixHeaderAvatar = posts => {
         for (const post of posts) {
           try {
@@ -896,19 +862,14 @@ const main = async function (nonce) {
             avatar.querySelectorAll(`${keyToCss('subAvatarTargetWrapper')} img`).forEach(img => img.sizes = "32px");
             post.classList.add('__avatarFixed');
           } catch (e) {
-            console.error('an error occurred processing a post avatar:', e);
+            console.error('An error occurred processing a post avatar:', e);
             console.error(post);
             console.error(fetchNpf(post));
           }
         }
       };
-      const reblogIcon = () => $str(`
-        <span class="__reblogIcon">
-          <svg xmlns="http://www.w3.org/2000/svg" height="15" width="15" role="presentation" style="--icon-color-primary: rgba(var(--black), 0.65);">
-            <use href="#managed-icon__reblog-compact"></use>
-          </svg>
-        </span>
-      `);
+
+      //Reverts the headers to the old style
       const fixHeader = posts => {
         for (const post of posts) {
           if (window.location.pathname.split('/').some(x => ['inbox', 'messages'].includes(x))) return;
@@ -944,12 +905,42 @@ const main = async function (nonce) {
 
             post.classList.add('__headerFixed');
           } catch (e) {
-            console.error('an error occurred processing a post header:', e);
+            console.error('An error occurred processing a post header:', e);
             console.error(post);
             console.error(fetchNpf(post));
           }
         }
       };
+
+      //HTML for the avatar beside posts
+      const userAvatar = name => $str(`
+        <div class="__avatarOuter">
+          <div class="__avatarWrapper" role="figure" aria-label="${tr("avatar")}">
+            <span class="__targetWrapper">
+              <a href="https://${name}.tumblr.com/" title="${name}" rel="noopener" role="link" class="__blogLink" tabindex="0">
+                <div class="__avatarInner" style="width: 64px; height: 64px;">
+                  <div class="__avatarWrapperInner">
+                    <div class="__placeholder" style="padding-bottom: 100%;">
+                      <img
+                      class="__avatarImage"
+                      srcset="https://api.tumblr.com/v2/blog/${name}/avatar/64 64w,
+                              https://api.tumblr.com/v2/blog/${name}/avatar/96 96w,
+                              https://api.tumblr.com/v2/blog/${name}/avatar/128 128w,
+                              https://api.tumblr.com/v2/blog/${name}/avatar/512 512w"
+                      sizes="64px"
+                      alt="${tr("Avatar")}"
+                      style="width: 64px; height: 64px;"
+                      loading="eager">
+                    </div>
+                  </div>
+                </div>
+              </a>
+            </span>
+          </div>
+        </div>
+      `);
+
+      //Creates a link into the avatar on the side of posts
       const blogViewLink = avatar => {
         const links = avatar.querySelectorAll('a');
         links.forEach(link => {
@@ -960,6 +951,8 @@ const main = async function (nonce) {
           });
         });
       };
+
+      //Adds the avatar beside posts
       const addUserPortrait = () => {
         const bar = $(`${keyToCss('postColumn')} > ${keyToCss('bar')}`);
         if (bar) {
@@ -971,35 +964,7 @@ const main = async function (nonce) {
         }
       };
 
-      const fixMasonryNotes = noteCounts => {
-        for (const noteCount of noteCounts) {
-          if (noteCount.innerText.length > 9) noteCount.innerHTML = `<span class="${keyToClasses('blackText').join(' ')}">${noteCount.querySelector('span').innerText}<span>`;
-        }
-      };
-
-      const labelContainer = (label, icon, desc) => $str(`
-        <div class="customLabelContainer" label="${label}">
-          ${label}
-          <svg xmlns="http://www.w3.org/2000/svg" height="12" width="12" class="customLabelIcon" role="presentation" style="--icon-color-primary: rgb(var(--${label === 'Follows You' ? 'blue' : 'red'}))">
-            <use href="#managed-icon__${icon}"></use>
-          </svg>
-          <span class="customLabelInfo ${icon}">${desc}</span>
-        </div>
-      `);
-
-      const fetchPercentage = obj => {
-        const fiberKey = Object.keys(obj).find(key => key.startsWith('__reactFiber'));
-        let fiber = obj[fiberKey];
-
-        while (fiber !== null) {
-          const { percentage } = fiber.memoizedProps || {};
-          if (percentage !== undefined) {
-            return percentage;
-          } else {
-            fiber = fiber.return;
-          }
-        }
-      };
+      //Fetches a specific note
       const fetchNote = obj => {
         const fiberKey = Object.keys(obj).find(key => key.startsWith('__reactFiber'));
         let fiber = obj[fiberKey];
@@ -1013,6 +978,38 @@ const main = async function (nonce) {
           }
         }
       };
+
+      //HTML for the labels in the notes
+      const labelContainer = (label, icon, desc) => $str(`
+        <div class="customLabelContainer" label="${label}">
+          ${label}
+          <svg xmlns="http://www.w3.org/2000/svg" height="12" width="12" class="customLabelIcon" role="presentation" style="--icon-color-primary: rgb(var(--${label === 'Follows You' ? 'blue' : 'red'}))">
+            <use href="#managed-icon__${icon}"></use>
+          </svg>
+          <span class="customLabelInfo ${icon}">${desc}</span>
+        </div>
+      `);
+
+      //"Untitled" in multiple language to test for bots
+      const untitledStrings = [
+        'Untitled', // en
+        'Sans titre', // fr
+        'Intitulado', // es
+        'Ohne titel', // de
+        'Senza titolo', // it
+        '無題', // jp
+        'Başlıksız', // tr
+        'Без названия', // ru
+        'Bez tytułu', // pl
+        'Sem título', // pt
+        'Ongetiteld', // nl
+        '무제', // ko
+        '无标题', // zh
+        'Tanpa judul', // id
+        'शीर्षकहीन' // hi
+      ];
+
+      //Scan notes and add the "Follows You" or "Possible Bot" labels
       const scanNotes = notes => {
         for (const note of notes) {
           try {
@@ -1040,6 +1037,22 @@ const main = async function (nonce) {
         }
       };
 
+      //Gives the numerical count of votes of a single choice in polls
+      const fetchPercentage = obj => {
+        const fiberKey = Object.keys(obj).find(key => key.startsWith('__reactFiber'));
+        let fiber = obj[fiberKey];
+
+        while (fiber !== null) {
+          const { percentage } = fiber.memoizedProps || {};
+          if (percentage !== undefined) {
+            return percentage;
+          } else {
+            fiber = fiber.return;
+          }
+        }
+      };
+
+      //Gives the numerical count of votes in polls
       const detailPolls = answers => {
         for (const answer of answers) {
           if (answer.classList.contains('__pollDetailed')) continue;
@@ -1053,6 +1066,8 @@ const main = async function (nonce) {
           });
         }
       };
+
+      //Fetches the results of a poll
       const fetchPollResults = obj => {
         const fiberKey = Object.keys(obj).find(key => key.startsWith('__reactFiber'));
         let fiber = obj[fiberKey];
@@ -1066,6 +1081,8 @@ const main = async function (nonce) {
           }
         }
       }
+
+      //Modifies the poll buttons to include percentage
       const pollResults = buttons => {
         for (const button of buttons) {
           const percentage = $str('<div class="__percentage"></div>');
@@ -1077,6 +1094,7 @@ const main = async function (nonce) {
         }
       }
 
+      //Fetches the other person's blog in a conversation
       const fetchOtherBlog = async function (obj) {
         const fiberKey = Object.keys(obj).find(key => key.startsWith('__reactFiber'));
         let fiber = obj[fiberKey];
@@ -1097,16 +1115,19 @@ const main = async function (nonce) {
 
         const { otherParticipantName, selectedBlogName } = conversationWindowObject;
 
+        //Retrieve the other's blog info
         try {
           await window.tumblr.apiFetch(`/v2/blog/${otherParticipantName}/info?fields[blogs]=theme`).then(response => {
             ({ headerImageFocused, backgroundColor, titleColor, linkColor } = response.response.blog.theme);
           });
         } catch (e) {
-          console.error(`failed to fetch the theme for blog ${otherParticipantName}`);
+          console.error(`Failed to fetch the theme for blog ${otherParticipantName}`);
         }
 
         return ({ headerImageFocused, backgroundColor, titleColor, linkColor, otherParticipantName, selectedBlogName });
       };
+
+      //Css for the conversation popup
       const styleMessaging = conversations => {
         for (const conversation of conversations) {
           fetchOtherBlog(conversation).then(({ headerImageFocused, backgroundColor, titleColor, linkColor, otherParticipantName, selectedBlogName }) => {
@@ -1115,6 +1136,7 @@ const main = async function (nonce) {
             let msgBackground;
             let tsColor;
             let headerBackground;
+            //Use blog colors
             if (colorStyle === '1') {
               headerBackground = `no-repeat top/100% url(${headerImageFocused})`;
               msgBackground = contrastBW(titleColor);
@@ -1123,6 +1145,7 @@ const main = async function (nonce) {
                 linkColor = tsColor;
               } else linkColor = rgbToString(hexToRgb(linkColor));
               titleColor = rgbToString(hexToRgb(titleColor));
+            //Use theme colors
             } else if (colorStyle === '2') {
               headerBackground = 'rgb(var(--white))';
               backgroundColor = headerBackground;
@@ -1130,6 +1153,7 @@ const main = async function (nonce) {
               titleColor = 'var(--black)';
               linkColor = titleColor;
               tsColor = titleColor;
+            //Use custom colors
             } else if (colorStyle === '3') {
               headerBackground = 'rgb(var(--white))';
               backgroundColor = `#${configPreferences.revertMessagingRedesign.backgroundColor}`;
@@ -1137,7 +1161,7 @@ const main = async function (nonce) {
               titleColor = rgbToString(hexToRgb(configPreferences.revertMessagingRedesign.textColor));
               linkColor = titleColor;
               tsColor = titleColor;
-            } else console.error('invalid style index');
+            } else console.error('Invalid style index');
 
             const style = document.createElement('style');
             style.classList.add('customMessagingStyle');
@@ -1162,6 +1186,7 @@ const main = async function (nonce) {
         }
       };
 
+      //Puts attributes on cells
       const labelCells = cells => {
         for (let cell of cells) {
           cell = cell.closest('[data-cell-id]');
@@ -1195,6 +1220,8 @@ const main = async function (nonce) {
           else this.start(func, selector);
         }
       });
+
+
       const sortNodes = () => {
         const nodes = newNodes.splice(0);
         if (nodes.length === 0) return;
@@ -1206,6 +1233,8 @@ const main = async function (nonce) {
           if (matchingElements.length) func(matchingElements);
         }
       };
+
+      //Observer to catch mutation events
       const observer = new MutationObserver(mutations => {
         const nodes = mutations
           .flatMap(({ addedNodes }) => [...addedNodes])
@@ -1215,6 +1244,7 @@ const main = async function (nonce) {
         sortNodes();
       });
 
+      //Utilities to modify the page's objects
       const featureStyles = Object.freeze({
         styles: new Map(),
         build (name, on, off, state) {
@@ -1243,7 +1273,7 @@ const main = async function (nonce) {
         }
       });
 
-      //Handles the events of the config checkboxes
+      //Handles the events of the checkboxes in the config menu
       const checkboxEvent = (id, value) => {
         switch (id) {
           case '__hideDashboardTabs':
@@ -1364,6 +1394,8 @@ const main = async function (nonce) {
             else window.localStorage.setItem(tsKey, 0);
         }
       };
+
+      //Handles the events of the sliders in the config menu
       const rangeEvent = (id, value) => {
         if (matchPathname()) {
           const posOffset = $('#__contentPositioning').valueAsNumber;
@@ -1372,19 +1404,19 @@ const main = async function (nonce) {
           if (Math.abs(posOffset) > safeMax) {
             safeMax = posOffset > 0 ? safeMax : -safeMax;
             $('#__contentPositioning').value = safeMax.toString();
-            featureStyles.toggleScalable('__cp', true, safeMax);
+            //featureStyles.toggleScalable('__cp', true, safeMax); TODO: Disabled for now since it no work
             configPreferences.contentPositioning.value = safeMax;
-            if (id === '__contentWidth') featureStyles.toggleScalable('__cw', true, value);
+            //if (id === '__contentWidth') featureStyles.toggleScalable('__cw', true, value); TODO: Disabled for now since it no work
           } else {
             switch (id) {
               case '__contentPositioning':
-                featureStyles.toggleScalable('__cp', true, value);
+                //featureStyles.toggleScalable('__cp', true, value); TODO: Disabled for now since it no work
                 break;
               case '__contentWidth':
-                featureStyles.toggleScalable('__cw', true, value);
+                //featureStyles.toggleScalable('__cw', true, value); TODO: Disabled for now since it no work
                 break;
               case '__messagingScale':
-                featureStyles.toggleScalable('__ms', configPreferences.revertMessagingRedesign.value, value);
+                //featureStyles.toggleScalable('__ms', configPreferences.revertMessagingRedesign.value, value); TODO: Disabled for now since it no work
                 break;
             }
           }
@@ -1395,8 +1427,10 @@ const main = async function (nonce) {
           }
         }
       };
+
+      // Initial status checks to determine whether to inject or not
       const initialChecks = () => {
-        if ($a('#__m').length) { // initial status checks to determine whether to inject or not
+        if ($a('#__m').length) {
           console.log('No need to unfuck');
           return false;
         } else {
@@ -1404,15 +1438,19 @@ const main = async function (nonce) {
           return true;
         }
       };
+
+      //Goes to the "following" tab by default
       const followingAsDefault = async function () {
         waitFor(keyToCss('timeline')).then(() => {
           if (isDashboard() &&
             $(keyToCss('timeline')).attributes.getNamedItem('data-timeline').value.includes('/v2/tabs/for_you')) {
             window.tumblr.navigate('/dashboard/following');
-            console.log('navigating to following');
+            console.log('Navigating to following');
           }
         });
       };
+
+      //Config menu header and icons
       const configMenu = (version, obj = {}) => {
         const menuShell = $str(`
           <div id="__m">
@@ -1431,28 +1469,32 @@ const main = async function (nonce) {
           </div>
           <div id="__a" style="display: none;">
             <div class="infoHeader">
-              <span>about</span>
+              <span>About</span>
             </div>
             <ul id="__am">
             </ul>
           </div>
           <div id="__c" style="display: none;">
             <div id="__cio">
-              <button id="__co" class="iOButton">export</button>
-              <button id="__ci" class="iOButton">import</button>
+              <button id="__co" class="iOButton">Export</button>
+              <button id="__ci" class="iOButton">Import</button>
             </div>
             <div class="infoHeader">
-              <span>general configuration</span>
+              <span>General configuration</span>
             </div>
             <ul id="__ct"></ul>
+            <!-- TODO: Disabled for now since it no work
             <li class="infoHeader" style="flex-flow: column wrap">
-              <span style="width: 100%;">advanced configuration</span>
-              <span style="width: 100%; font-size: .8em;">requires a page reload</span>
+              <span style="width: 100%;">Advanced configuration</span>
+              <span style="width: 100%; font-size: .8em;">Requires a page reload</span>
             </li>
+            //-->
             <ul id="__cta"></ul>
           </div>
         </div>
         `);
+
+        //Links and labels in the meatball menu
         const info = [
           { url: 'https://github.com/ClangPan/dashboard-unfucker', text: 'Source' },
           { url: 'https://github.com/ClangPan/dashboard-unfucker/blob/main/changelog.md', text: 'Changelog' },
@@ -1469,6 +1511,8 @@ const main = async function (nonce) {
             <a target="_blank" href="${obj.url}">${obj.text}</a>
           </li>
         `);
+
+        //Labels of the different options
         const configs = {
           hideDashboardTabs: 'Hide dashboard tabs',
           collapseCaughtUp: "Hide the 'changes', 'Staff picks', etc. carousel",
@@ -1498,6 +1542,8 @@ const main = async function (nonce) {
           showNsfwPosts: 'Show hidden NSFW posts in the timeline',
           originalEditorHeaders: 'Revert the post editor header design'
         };
+
+        //HTML for the config panel
         const configEntry = (obj = {}) => {
           const entry = [];
 
@@ -1597,7 +1643,7 @@ const main = async function (nonce) {
                 </li>
               `));
             }
-          } else if (obj.type === 'range') {
+          /*} else if (obj.type === 'range') {
             if (obj.name === 'contentPositioning') {
               entry.push($str(`
                 <li>
@@ -1639,7 +1685,7 @@ const main = async function (nonce) {
                   </div>
                 </li>
               `));
-            }
+            } TODO: Disabled for now since it no work*/
           }
 
           return entry;
@@ -1663,6 +1709,12 @@ const main = async function (nonce) {
         return menuShell;
       };
 
+      const fixMasonryNotes = noteCounts => {
+        for (const noteCount of noteCounts) {
+          if (noteCount.innerText.length > 9) noteCount.innerHTML = `<span class="${keyToClasses('blackText').join(' ')}">${noteCount.querySelector('span').innerText}<span>`;
+        }
+      };
+
       //Init the script using the user preferences
       const initializePreferences = () => {
         mutationManager.start(fixMasonryNotes, masonryNotesSelector);
@@ -1674,6 +1726,7 @@ const main = async function (nonce) {
         if (configPreferences.disableTagNag.value) window.localStorage.setItem(tsKey, Number.MAX_SAFE_INTEGER);
 
         if (configPreferences.collapseCaughtUp.value || configPreferences.hideRecommendedBlogs.value || configPreferences.hideRecommendedTags.value) mutationManager.start(labelCells, carouselCellSelector);
+        //Css to hide the 'changes', 'Staff picks', etc. carousel
         featureStyles.build('__cc', `
           [data-watermark-carousel-title-cell] { position: relative !important; }
           [data-watermark-carousel-title-cell] > div { visibility: hidden; position: absolute !important; max-width: 100%; }
@@ -1686,6 +1739,7 @@ const main = async function (nonce) {
           }
         `, '', configPreferences.collapseCaughtUp.value);
 
+        //Css to hide the recommended blogs carousel
         featureStyles.build('__rb', `
           [data-blog-carousel-cell] { position: relative !important; }
           [data-blog-carousel-cell] > div { visibility: hidden; position: absolute !important; max-width: 100%; }
@@ -1697,6 +1751,7 @@ const main = async function (nonce) {
           toggle(find($a(keyToCss('desktopContainer')), keyToCss('recommendedBlogs')), !configPreferences.hideRecommendedBlogs.value);
         });
 
+        //Css to hide the recommended tags carousel
         featureStyles.build('__rt', `
           [data-tag-carousel-cell] { position: relative !important; }
           [data-tag-carousel-cell] > div { visibility: hidden; position: absolute !important; max-width: 100%; }
@@ -1730,6 +1785,8 @@ const main = async function (nonce) {
         if (configPreferences.highlightLikelyBots.value || configPreferences.showFollowingLabel.value) {
           mutationManager.start(scanNotes, noteSelector);
         }
+
+        //Css for poll numerical  results
         featureStyles.build('__ps', `
           ${keyToCss('pollAnswerPercentage')} { position: relative; bottom: 4px; }
           ${keyToCss('results')} { overflow: hidden; }`, '', configPreferences.displayVoteCounts.value);
@@ -1737,6 +1794,7 @@ const main = async function (nonce) {
 
         if (configPreferences.votelessResults.value) mutationManager.start(pollResults, voteSelector);
 
+        //Css for editor header old design
         featureStyles.build('__oe', `
           #glass-container ${keyToCss('menuContainer')} {
             border-bottom: none !important;
@@ -1756,9 +1814,12 @@ const main = async function (nonce) {
           }
         `, '', configPreferences.originalEditorHeaders.value);
 
+        //Css to remove badges
         featureStyles.build('__bs', `${keyToCss('badgeContainer')}, ${keyToCss('peeprHeaderBadgesWrapper')} { display: none; }`, '', configPreferences.hideBadges.value);
-        if (matchPathname()) {
-          featureStyles.buildScalable('__cp', `${containerSelector} { left: $NUMpx; }`, '', true, configPreferences.contentPositioning.value);
+
+        //Css for the content width and position
+        /*if (matchPathname()) {
+          featureStyles.buildScalable('__cp', `${containerSelector} { left: $NUMpx; position: relative; }`, '', true, configPreferences.contentPositioning.value);
           featureStyles.buildScalable('__cw', `${containerSelector} { max-width: $NUMpx; }`, '', true, configPreferences.contentWidth.value);
           featureStyles.buildScalable('__gs', `${keyToCss('gridTimelineObject')} { width: calc($NUM% - 2px) !important; }`, '', true, 0);
           if (configPreferences.contentWidth.value > 51.5 && pathname === 'likes') {
@@ -1768,7 +1829,9 @@ const main = async function (nonce) {
               featureStyles.toggleScalable('__gs', true, gridItemWidth);
             });
           }
-        }
+        } TODO: Disabled for now since it no work */
+
+        //Css for activity feed old design
         featureStyles.build('__acs', `
           [role="tablist"] { padding: 0 !important; }
           [role="tablist"] ${keyToCss('button')}${keyToCss('tab')} {
@@ -1779,8 +1842,8 @@ const main = async function (nonce) {
             background: none !important;
           }
           [role="tablist"] ${keyToCss('button')}${keyToCss('tab')}[aria-selected="true"] {
-            color: rgb(var(--accent)) !important;
-            box-shadow: inset 0px -2px 0px rgb(var(--accent));
+            color: var(--accent) !important;
+            box-shadow: inset 0px -2px 0px var(--accent);
           }
           [role="tablist"] ${keyToCss('button')}${keyToCss('tab')}:first-of-type [tabindex] { font-size: 0; }
           [role="tablist"] ${keyToCss('button')}${keyToCss('tab')}:first-of-type [tabindex]::after {
@@ -1810,6 +1873,7 @@ const main = async function (nonce) {
           ${keyToCss('linkToActivity')} a { color: rgba(var(--black),.65) !important; }
         `, '', configPreferences.revertActivityFeedRedesign.value);
 
+        //Css for conversation window scaling
         featureStyles.buildScalable('__ms', `
           ${keyToCss('conversationWindow')} {
             border-radius: 5px;
@@ -1856,6 +1920,8 @@ const main = async function (nonce) {
 
         observer.observe(target, { childList: true, subtree: true });
       };
+
+      //Create the "Import"/"Export" buttons
       const setupButtons = () => {
         $('#__cb').addEventListener('click', () => {
           if ($('#__c').style.display === 'none') {
@@ -1869,6 +1935,8 @@ const main = async function (nonce) {
           } else $('#__ab svg').style.setProperty('--icon-color-primary', 'rgba(var(--white-on-dark),.65)');
           toggle($('#__a'));
         });
+
+        //Event handler for the "Export" button
         $('#__co').addEventListener('click', () => {
           const configExport = new Blob([JSON.stringify(configPreferences, null, 2)], { type: 'application/json' });
           const url = URL.createObjectURL(configExport);
@@ -1878,13 +1946,15 @@ const main = async function (nonce) {
           const mm = (date.getDay() + 1).toString();
           const dd = date.getDate().toString();
           exportLink.href = url;
-          exportLink.download = `dashboard unfucker config export ${mm}-${dd}-${yy}`;
+          exportLink.download = `dashboard unfucker config export ${yy}-${mm}-${dd}`;
 
           document.documentElement.append(exportLink);
           exportLink.click();
           exportLink.remove();
           URL.revokeObjectURL(url);
         });
+
+        //Event handler for the "Import" button
         $('#__ci').addEventListener('click', () => {
           const input = document.createElement('input');
           input.id = '__cii';
@@ -1899,13 +1969,13 @@ const main = async function (nonce) {
               try {
                 obj = JSON.parse(obj);
               } catch (e) {
-                console.error('failed to import preferences from file!', e);
+                console.error('Failed to import preferences from file!', e);
               }
               if (typeof obj === 'object' && obj.lastVersion) {
                 configPreferences = obj;
                 updatePreferences();
-                console.info('imported preferences from file!');
-                msg = $str('<span id="__im">successfully imported preferences from file!</span>');
+                console.info('Imported preferences from file!');
+                msg = $str('<span id="__im">Successfully imported preferences from file!</span>');
                 document.getElementById('__cio').append(msg);
                 await delay(100);
                 css(msg, { opacity: '1' });
@@ -1914,7 +1984,7 @@ const main = async function (nonce) {
                 await delay(700);
                 msg.remove();
               } else {
-                msg = $str('<span id="__im">invalid JSON data!</span>');
+                msg = $str('<span id="__im">Invalid JSON data!</span>');
                 document.getElementById('__cio').append(msg);
                 await delay(100);
                 css(msg, { opacity: '1' });
@@ -1927,6 +1997,7 @@ const main = async function (nonce) {
           });
           input.click();
         });
+
         $a('.configInput').forEach(currentValue => {
           currentValue.addEventListener('change', event => {
             const name = event.target.attributes.getNamedItem('name').value;
@@ -1943,6 +2014,7 @@ const main = async function (nonce) {
             updatePreferences();
           });
         });
+
         $a('.subConfigInput').forEach(currentValue => {
           currentValue.addEventListener('change', event => {
             const name = event.target.attributes.getNamedItem('name').value;
@@ -1957,6 +2029,7 @@ const main = async function (nonce) {
             updatePreferences();
           });
         });
+
         $a('.msgHexSelect').forEach(currentValue => {
           currentValue.addEventListener('change', event => {
             const name = event.target.attributes.getNamedItem('name').value;
@@ -1967,6 +2040,7 @@ const main = async function (nonce) {
         });
       };
 
+      //Does what's on the can
       const unfuck = async function () {
         if (!initialChecks()) return;
 
@@ -1981,6 +2055,8 @@ const main = async function (nonce) {
               waitFor(keyToCss('sidebarContent')).then(() => {
                 hide($(keyToCss('sidebarContent')));
               });
+
+              //Insert the config menu
               $(keyToCss('sidebar')).insertBefore(menu, $(`${keyToCss('sidebar')} aside`));
               if (configPreferences.lastVersion !== version) {
                 $('#__in').append($str("<span class='__n'>new!</span>"));
@@ -1989,27 +2065,22 @@ const main = async function (nonce) {
                 $('#__in').addEventListener('click', () => { $a('.__n').forEach(value => hide(value)); });
                 configPreferences.lastVersion = version;
                 updatePreferences();
-
               }
-              /* if (configPreferences.showCta) {
-                $(keyToCss('sidebar')).insertBefore(cta, $(`${keyToCss('sidebar')} aside`));
-                $('#__cta-close').addEventListener('click', () => {
-                  configPreferences.showCta = false;
-                  updatePreferences();
-                  $('.__cta-div').remove();
-                });
-              } */
+
               setupButtons();
             });
           }
+
           initializePreferences();
         });
-        console.log('dashboard fixed!');
+
+        console.log('Dashboard fixed!');
       };
 
-      //console.info(JSON.parse(atob(state.obfuscatedFeatures)));
-      //console.info(featureSet);
+      console.info(JSON.parse(atob(state.obfuscatedFeatures)));
+      console.info(featureSet);
 
+      //Does the thing
       unfuck();
 
       window.setTimeout(() => { //added post fallback. does it work? who knows
@@ -2017,6 +2088,7 @@ const main = async function (nonce) {
         updatePreferences();
       }, 900000)
 
+      //When the window is resized
       window.addEventListener('resize', () => {
         if (!$('#__m')) return;
 
@@ -2035,7 +2107,7 @@ const main = async function (nonce) {
           <option value="${windowWidth}" label="full width"></option>
         `;
       });
-      window.tumblr.on('navigation', () => window.setTimeout(() => {
+      window.tumblr.on('navigationLinks', () => window.setTimeout(() => {
         unfuck().then(() => {
           window.setTimeout(() => {
             if (!$a('#__m').length) unfuck();
@@ -2048,17 +2120,21 @@ const main = async function (nonce) {
     });
   });
 };
+
 const getNonce = () => {
   const { nonce } = [...document.scripts].find(script => script.nonce) || '';
   if (nonce === '') console.error('empty script nonce attribute: script may not inject');
   return nonce;
 };
+
+//Insert the script into the HTML head
 const script = () => $( `
   <script id="__u" nonce="${getNonce()}">
     const unfuckDashboard = ${main.toString()};
     unfuckDashboard("${getNonce()}");
   </script>
 ` );
+
 if ($( 'head' ).length === 0) {
   const newNodes = [];
   const findHead = () => {
