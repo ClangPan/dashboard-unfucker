@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.1.0
+- Window flags are fixed! The script is now fully functional
+- Some advanced features have been removed semi-permanently, just because Tumblr doesn't recognize the Feature that was used to disable/enable them. I might try to find a workaround if enough people request to re-implement a removed Feature
+- No need for the OTD UserStyle anymore! Please disable it!! It will look ugly with the script
+
 ## v6.0.3
 - Fixed some broken formatting at parts
 - Tried to fix the window flags, unsuccessfully

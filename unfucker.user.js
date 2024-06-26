@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         dashboard unfucker
-// @version      6.0.3
-// @description  no more shitty twitter ui for pc
+// @version      6.1.0
+// @description  No more shitty twitter ui for pc
 // @author       ClangPan
 // @author       dragongirlsnout
 // @match        https://www.tumblr.com/*
@@ -17,7 +17,7 @@
 const $ = window.jQuery;
 
 const main = async function (nonce) {
-  const version = '6.0.3';
+  const version = '6.1.0';
 
   //Supported pages
   const match = [
@@ -70,13 +70,9 @@ const main = async function (nonce) {
     votelessResults : { advanced: false, type: 'checkbox', value: ''},
     disableScrollingAvatars: { advanced: false, type: 'checkbox', value: '' },
     originalEditorHeaders: { advanced: false, type: 'checkbox', value: '' },
-    //TODO: Disabled for now since it no work
-    //disableTumblrDomains: { advanced: true, type: 'checkbox', value: 'checked' },
-    //revertSearchbarRedesign: { advanced: true, type: 'checkbox', value: 'checked' },
-    //enableCustomTabs: { advanced: true, type: 'checkbox', value: '' },
-    //enableReblogPolls: { advanced: true, type: 'checkbox', value: '' },
-    //reAddHomeNotifications: { advanced: true, type: 'checkbox', value: 'checked' },
-    //showNsfwPosts: { advanced: true, type: 'checkbox', value: '' },
+    enableCustomTabs: { advanced: true, type: 'checkbox', value: '' },
+    enableReblogPolls: { advanced: true, type: 'checkbox', value: '' },
+    showNsfwPosts: { advanced: true, type: 'checkbox', value: '' },
   };
 
   let pathname = window.location.pathname.split('/')[1];
@@ -195,7 +191,7 @@ const main = async function (nonce) {
         position: sticky !important;
         top: 0 !important;
         min-height: unset !important;
-        background-color: var(--navy);
+        background-color: rgb(var(--navy));
       }
     </style>
   `);
@@ -213,12 +209,12 @@ const main = async function (nonce) {
     else return false;
   };
 
-  //Possibly useless? Keeping it for now
+  //Fetches the new posts in the timeline, and display the NSFW ones
   const oldFetch = window.fetch;
   window.fetch = async (input, options) => {
     const response = await oldFetch(input, options);
     let content = await response.text();
-    if (isPostFetch(input) /*&& (configPreferences.showNsfwPosts.value || dummyValue)*/) {
+    if (isPostFetch(input) && (configPreferences.showNsfwPosts.value || dummyValue)) {
       console.info(`Modified data fetched from ${input}`);
       content = JSON.parse(content);
       const elements = content.response.timeline.elements;
@@ -274,7 +270,7 @@ const main = async function (nonce) {
 
   //Display the hidden NSFW posts
   const modifyInitialTimeline = (obj, context) => {
-    if (!obj /*|| !configPreferences.showNsfwPosts.value*/) return obj;
+    if (!obj || !configPreferences.showNsfwPosts.value) return obj;
     else if (context === 'dashboard') {
       obj.dashboardTimeline.response.timeline.elements.forEach(function (post) { post.isNsfw = false; });
     } else if (context === 'peepr') {
@@ -295,20 +291,15 @@ const main = async function (nonce) {
 
   //The features to enable/disable (the options included in the "Advanced configuration" part)
   const featureSet = [
-    { name: 'redpopDesktopVerticalNav', value: false },
-    /*{ name: 'domainsSettings', value: !configPreferences.disableTumblrDomains.value },
-    { name: 'improvedSearchTypeahead', value: !configPreferences.revertSearchbarRedesign.value },
-    { name: 'configurableTabbedDash', value: !!configPreferences.enableCustomTabs.value },
-    { name: 'allowAddingPollsToReblogs', value: !!configPreferences.enableReblogPolls.value },
-    { name: 'redpopUnreadNotificationsOnTab', value: !configPreferences.reAddHomeNotifications.value }, TODO: Disabled for now since it no work*/
-    { name: 'redpopDesktopVerticalNav', value: false },
+    { name: 'redpopDesktopVerticalNav', value: false }, //Reverts the Twitter UI redesign
+    { name: 'configurableTabbedDash', value: !!configPreferences.enableCustomTabs.value }, //Doesn't seem to do anything anymore? Keeping it in case it does for some people
+    { name: 'allowAddingPollsToReblogs', value: !!configPreferences.enableReblogPolls.value }, //Allows adding polls to reblogs
     { name: 'crowdsignalPollsNpf', value: true },
     { name: 'crowdsignalPollsCreate', value: true },
-    { name: 'adFreeCtaBanner', value: false }
+    { name: 'adFreeCtaBanner', value: false },
   ];
 
   //Initial state of the window
-  //TODO: Find a way to fix this
   Object.defineProperty(window, '___INITIAL_STATE___', { // thanks twilight-sparkle-irl!
     set (x) {
       state = x;
@@ -333,14 +324,19 @@ const main = async function (nonce) {
   //Appends the "nonce" style to the head
   document.head.appendChild(style);
 
+  //Injecting the initial state before the page loads fully
+  //I am not satisfied with this solution for some reason, but het it works
+  //Thanks to twilight-sparkle-irl for angling me in the correct direction
+  document.onreadystatechange = function () {
+      if (document.readyState === "interactive") {
+          state = JSON.parse(document.scripts.___INITIAL_STATE___.innerHTML);
+          state = window.___INITIAL_STATE___;
+          document.scripts.___INITIAL_STATE___.innerHTML = JSON.stringify(state);
+      }
+  };
+
   //Fires when the page is loaded
   document.addEventListener('DOMContentLoaded', () => {
-    //This does not work :(
-    const initialState = document.getElementById("___INITIAL_STATE___");
-    state = JSON.parse(initialState.innerHTML);
-    state = window.___INITIAL_STATE___;
-    initialState.innerHTML = JSON.stringify(state);
-
     getUtilities().then(({ keyToCss, keyToClasses, tr }) => {
       let windowWidth = window.innerWidth;
       let safeOffset = (windowWidth - 1000) / 2;
@@ -357,12 +353,15 @@ const main = async function (nonce) {
       const conversationSelector = '[data-skip-glass-focus-trap]';
       const carouselCellSelector = `[data-cell-id] ${keyToCss('tagCard')}, [data-cell-id] ${keyToCss('blogRecommendation')}, [data-cell-id] ${keyToCss('tagChicletLink')}`;
       const masonryNotesSelector = `[data-timeline]${keyToCss('masonry')} article ${keyToCss('formattedNoteCount')}`;
-      const containerSelector = `${keyToCss('bluespaceLayout')} > ${keyToCss('newDesktopLayout')}:not(${keyToCss('mainContentIs4ColumnMasonry')})`;
+      const containerSelector = `${keyToCss('bluespaceLayout')} > ${keyToCss('container')}:not(${keyToCss('mainContentIs4ColumnMasonry')})`;
 
       const tsKey = 'lastSeenNoTagPromptTsKey';
 
       const newNodes = [];
       const target = document.getElementById('root');
+
+      //For future usage
+      //document.title = 'Tumblr, but Unfucked';
 
       //Styles the existing elements
       const styleElement = $str(`
@@ -722,8 +721,8 @@ const main = async function (nonce) {
           #tumblr { --dashboard-tabs-header-height: 0px !important; }
           ${keyToCss('navItem')}:has(use[href="#managed-icon__sparkle"]) { display: none !important; }
           ${keyToCss('bluespaceLayout')} > ${keyToCss('container')} { position: relative; }
-          /*[data-blog-container], [data-blog-container] ${keyToCss('layout')}, [data-blog-container] ${keyToCss('sidebar')},
-          [data-blog-container] ${keyToCss('sidebarTopContainer')} { width: fit-content !important; } TODO: Disabled for now since it no work*/
+          [data-blog-container], [data-blog-container] ${keyToCss('layout')}, [data-blog-container] ${keyToCss('sidebar')},
+          [data-blog-container] ${keyToCss('sidebarTopContainer')} { width: fit-content !important; }
           ${keyToCss('main')} {
             position: relative;
             flex: 1;
@@ -731,10 +730,10 @@ const main = async function (nonce) {
             max-width: none !important;
           }
 
-          /*${keyToCss('main')}:not(${keyToCss('body')} > ${keyToCss('main')}) {
+          ${keyToCss('main')}:not(${keyToCss('body')} > ${keyToCss('main')}) {
             top: -100px;
             padding-top: 100px;
-          }*/
+          }
 
           ${keyToCss('body')} > header,
           ${keyToCss('body')} > ${keyToCss('toolbar')} {
@@ -749,7 +748,7 @@ const main = async function (nonce) {
           ${keyToCss('postColumn')} { max-width: calc(100% - 85px); }
           ${keyToCss('post')}, ${keyToCss('post')} > * { max-width: 100%; }
           ${keyToCss('cell')},
-          /*${keyToCss('link')},*/
+          ${keyToCss('link')},
           ${keyToCss('reblog')},
           ${keyToCss('videoBlock')},
           ${keyToCss('videoBlock')} iframe,
@@ -768,7 +767,13 @@ const main = async function (nonce) {
 
           ${keyToCss('toastHolder')} { display: none; }
 
+          /* Hides the side search bar, redundant */
+          ${keyToCss('searchSidebarItem')} { display: none; }
+
           aside > button${keyToCss('expandOnHover')} { display: none !important; }
+
+          /* Hide the Tumblr domain entry in setting, for now no settings for it, but if I can add it if asked for it */
+          li > a[href='/settings/domains']  { display: none !important; }
 
           button${keyToCss('pollAnswer')} { overflow: clip; }
 
@@ -1326,10 +1331,10 @@ const main = async function (nonce) {
             toggle(find($a(keyToCss('sidebarItem')), keyToCss('radar')), !value);
             break;
           case '__hideExplore':
-            toggle(find($a(keyToCss('navItem')), 'use[href="#managed-icon__explore"]'), !value);
+            toggle(find($a(keyToCss('menuContainer')), 'use[href="#managed-icon__explore"]'), !value);
             break;
           case '__hideTumblrShop':
-            toggle(find($a(keyToCss('targetPopoverWrapper')), 'use[href="#managed-icon__shop"]').parentElement, !value);
+            toggle(find($a(keyToCss('menuContainer')), 'use[href="#managed-icon__shop"]'), !value);
             break;
           case '__hideBadges':
             featureStyles.toggle('__bs', value);
@@ -1404,19 +1409,19 @@ const main = async function (nonce) {
           if (Math.abs(posOffset) > safeMax) {
             safeMax = posOffset > 0 ? safeMax : -safeMax;
             $('#__contentPositioning').value = safeMax.toString();
-            //featureStyles.toggleScalable('__cp', true, safeMax); TODO: Disabled for now since it no work
+            featureStyles.toggleScalable('__cp', true, safeMax);
             configPreferences.contentPositioning.value = safeMax;
-            //if (id === '__contentWidth') featureStyles.toggleScalable('__cw', true, value); TODO: Disabled for now since it no work
+            if (id === '__contentWidth') featureStyles.toggleScalable('__cw', true, value);
           } else {
             switch (id) {
               case '__contentPositioning':
-                //featureStyles.toggleScalable('__cp', true, value); TODO: Disabled for now since it no work
+                featureStyles.toggleScalable('__cp', true, value);
                 break;
               case '__contentWidth':
-                //featureStyles.toggleScalable('__cw', true, value); TODO: Disabled for now since it no work
+                featureStyles.toggleScalable('__cw', true, value);
                 break;
               case '__messagingScale':
-                //featureStyles.toggleScalable('__ms', configPreferences.revertMessagingRedesign.value, value); TODO: Disabled for now since it no work
+                featureStyles.toggleScalable('__ms', configPreferences.revertMessagingRedesign.value, value);
                 break;
             }
           }
@@ -1483,12 +1488,10 @@ const main = async function (nonce) {
               <span>General configuration</span>
             </div>
             <ul id="__ct"></ul>
-            <!-- TODO: Disabled for now since it no work
             <li class="infoHeader" style="flex-flow: column wrap">
               <span style="width: 100%;">Advanced configuration</span>
               <span style="width: 100%; font-size: .8em;">Requires a page reload</span>
             </li>
-            //-->
             <ul id="__cta"></ul>
           </div>
         </div>
@@ -1533,14 +1536,11 @@ const main = async function (nonce) {
           contentPositioning: 'Content positioning',
           contentWidth: 'Content width',
           messagingScale: 'Messaging window scale',
-          disableTumblrDomains: 'Disable Tumblr domains',
-          revertSearchbarRedesign: 'Revert searchbar update',
+          disableTagNag: 'Disable the "post without tags" nag',
+          originalEditorHeaders: 'Revert the post editor header design',
           enableCustomTabs: 'Enable customizable dashboard tabs',
           enableReblogPolls: 'Enable adding polls to reblogs',
-          disableTagNag: 'Disable the "post without tags" nag',
-          reAddHomeNotifications: 'Re-add unread post notifications to the corner of the home icon',
           showNsfwPosts: 'Show hidden NSFW posts in the timeline',
-          originalEditorHeaders: 'Revert the post editor header design'
         };
 
         //HTML for the config panel
@@ -1643,7 +1643,7 @@ const main = async function (nonce) {
                 </li>
               `));
             }
-          /*} else if (obj.type === 'range') {
+          } else if (obj.type === 'range') {
             if (obj.name === 'contentPositioning') {
               entry.push($str(`
                 <li>
@@ -1685,7 +1685,7 @@ const main = async function (nonce) {
                   </div>
                 </li>
               `));
-            } TODO: Disabled for now since it no work*/
+            }
           }
 
           return entry;
@@ -1732,10 +1732,7 @@ const main = async function (nonce) {
           [data-watermark-carousel-title-cell] > div { visibility: hidden; position: absolute !important; max-width: 100%; }
           [data-watermark-carousel-title-cell] > div canvas { visibility: hidden; }
           [data-watermark-carousel-cell] > div {
-            height: 0px;
-            overflow-y: hidden;
-            border: 4px solid rgb(var(--white));
-            border-radius: 3px;
+            display: none;
           }
         `, '', configPreferences.collapseCaughtUp.value);
 
@@ -1776,10 +1773,9 @@ const main = async function (nonce) {
         }
 
         //Toggles the Explore and Shop icon
-        waitFor(keyToCss('navigationLinks')).then(() => {
-          toggle(find($a(keyToCss('navItem')), 'use[href="#managed-icon__explore"]'), !configPreferences.hideExplore.value);
-          //We use "parentElement" here due to the hierarchy being different that the other buttons
-          toggle(find($a(keyToCss('targetPopoverWrapper')), 'use[href="#managed-icon__shop"]').parentElement, !configPreferences.hideTumblrShop.value);
+        waitFor(keyToCss('menuRight')).then(() => {
+          toggle(find($a(keyToCss('menuContainer')), 'use[href="#managed-icon__explore"]'), !configPreferences.hideExplore.value);
+          toggle(find($a(keyToCss('menuContainer')), 'use[href="#managed-icon__shop"]'), !configPreferences.hideTumblrShop.value);
         });
 
         if (configPreferences.highlightLikelyBots.value || configPreferences.showFollowingLabel.value) {
@@ -1818,8 +1814,8 @@ const main = async function (nonce) {
         featureStyles.build('__bs', `${keyToCss('badgeContainer')}, ${keyToCss('peeprHeaderBadgesWrapper')} { display: none; }`, '', configPreferences.hideBadges.value);
 
         //Css for the content width and position
-        /*if (matchPathname()) {
-          featureStyles.buildScalable('__cp', `${containerSelector} { left: $NUMpx; position: relative; }`, '', true, configPreferences.contentPositioning.value);
+        if (matchPathname()) {
+          featureStyles.buildScalable('__cp', `${containerSelector} { left: $NUMpx; }`, '', true, configPreferences.contentPositioning.value);
           featureStyles.buildScalable('__cw', `${containerSelector} { max-width: $NUMpx; }`, '', true, configPreferences.contentWidth.value);
           featureStyles.buildScalable('__gs', `${keyToCss('gridTimelineObject')} { width: calc($NUM% - 2px) !important; }`, '', true, 0);
           if (configPreferences.contentWidth.value > 51.5 && pathname === 'likes') {
@@ -1829,7 +1825,7 @@ const main = async function (nonce) {
               featureStyles.toggleScalable('__gs', true, gridItemWidth);
             });
           }
-        } TODO: Disabled for now since it no work */
+        }
 
         //Css for activity feed old design
         featureStyles.build('__acs', `
@@ -2107,7 +2103,7 @@ const main = async function (nonce) {
           <option value="${windowWidth}" label="full width"></option>
         `;
       });
-      window.tumblr.on('navigationLinks', () => window.setTimeout(() => {
+      window.tumblr.on('navigation', () => window.setTimeout(() => {
         unfuck().then(() => {
           window.setTimeout(() => {
             if (!$a('#__m').length) unfuck();
@@ -2123,7 +2119,7 @@ const main = async function (nonce) {
 
 const getNonce = () => {
   const { nonce } = [...document.scripts].find(script => script.nonce) || '';
-  if (nonce === '') console.error('empty script nonce attribute: script may not inject');
+  if (nonce === '') console.error('Empty script nonce attribute: script may not inject');
   return nonce;
 };
 
