@@ -7,7 +7,6 @@ Original credit goes to @enchanted-sword/[dragongirlsnout](https://tumblr.com/dr
 The script works with and is fully tested with Tampermonkey, Tampermonkey Beta, Greasemonkey, and Violentmonkey.
 - Install any one of the script injector extensions listed above.
 - Click on [unfucker.user.js](https://github.com/ClangPan/dashboard-unfucker/raw/main/unfucker.user.js) to install or update.
-- [VERY TEMPORARY HACKY FIX] Install the ["Old Tumblr Dashboard (Userstyle)"](https://userstyles.world/style/11286/old-tumblr-dashboard-userstyle) Stylus UserStyle so the interface isn't broken all over. I still need to fix stuff. I know. Don't complain, I'll fix it eventually.
 
 ## Features
 The script uses window property flags to completely disable the vertical navigation layout, as well as Tumblr Live, the Tumblr Shop, and Tumblr Domains.
@@ -27,6 +26,9 @@ Hides the Recommended Blogs sidebar item and the blog recommendation carousels b
 ### Hide recommended tags
 Hides the tag recommendation carousels between posts in the timeline.
 
+### Revert the post header design and re-add user avatars beside posts
+Moves the shrunken inline avatars back to scrolling containers beside the posts, shows who a post was reblogged from even if it was reblogged from the previous contributor to the post's content, and replaces the word "reblogged" with the classic icon.
+
 ### Hide Tumblr Radar
 Hides the Tumblr Radar.
 
@@ -45,11 +47,17 @@ Marks new followers that are likely to be bots. The filter can sometimes indicat
 ### Show who follows you in the activity feed
 Adds a "Following You" label to relevant notifications that matches the default "Mutuals" and "Following" labels.
 
-### Revert the post header design and re-add user avatars beside posts
-Moves the shrunken inline avatars back to scrolling containers beside the posts, shows who a post was reblogged from even if it was reblogged from the previous contributor to the post's content, and replaces the word "reblogged" with the classic icon.
+### Content positioning
+Controls the horizontal offset of the dashboard's content.
 
-### Disable avatars scrolling with posts
-Prevents the avatars beside posts from scrolling with the posts.
+### Content width
+Controls the width of the dashboard's content.
+
+### Revert activity feed redesign
+Reverts the latest activity feed redesign.
+
+### Messaging window scale
+Controls the relative height and width of the messaging window
 
 ### Revert messaging redesign
 Changes the messaging window to look more like the old design.
@@ -61,41 +69,24 @@ Changes the messaging window to look more like the old design.
 - Use custom colors
   - Uses the three custom hex colours supplied by the user in the text areas
 
-### Content positioning
-Controls the horizontal offset of the dashboard's content.
-
-### Content width
-Controls the width of the dashboard's content.
-
-### Messaging window scale
-Controls the relative height and width of the messaging window
-
-### Disable Tumblr Domains
-Disables the Tumblr Domains icons where possible.
-
-### Revert activity feed redesign
-Reverts the latest activity feed redesign.
-
-### Revert searchbar redesign
-Reverts the latest searchbar and search prediction redesign.
-
-### Enable custom dashboard tabs
-Enables the custom dashboard tabs experiment, which allows the tabs to be customized (To the extent Tumblr considers "customizable").
-
-### Enable adding polls to reblogs
-Enables adding polls onto reblogged posts.
-
 ### Disable "post without tags" nag
 Disables the popup that appears when attempting to create a post without adding tags first. 
-
-### Re-add unread post notifications to the corner of the home icon
-Re-adds the notification icon to the navbar's "home" icon that displays how many unread posts are in your feed.
 
 ### Display exact vote counts on poll answers
 Displays the number of votes each poll answer has recieved underneath the vote percentage.
 
 ### Display poll results without voting
 Displays a colored bar inside of poll vote buttons whose width is proportional to the percentage of votes each option has recieved at the time of loading 
+
+### Disable avatars scrolling with posts
+Prevents the avatars beside posts from scrolling with the posts.
+
+### Enable custom dashboard tabs
+Enables the custom dashboard tabs experiment, which allows the tabs to be customized (To the extent Tumblr considers "customizable").
+It is unclear whether this does anything anymore, if you depended on it before, please tell me if it works or not.
+
+### Enable adding polls to reblogs
+Enables adding polls onto reblogged posts.
 
 ### Show hidden NSFW posts in the timeline
 Certain posts flagged as NSFW by Tumblr are delivered by internal API requests, but are not added to the dashboard feed. Enabling this feature will make these posts visible on the dashboard.
@@ -113,3 +104,4 @@ Certain posts flagged as NSFW by Tumblr are delivered by internal API requests, 
 
 ## Credits / Thanks
 - @enchanted-sword/[dragongirlsnout](https://tumblr.com/dragongirlsnout), the original creator of the script
+- @twilight-sparkle-irl/[desktop-assistant](https://www.tumblr.com/desktop-assistant), for helping with the original script, and angling me towards a direction to fix the state
