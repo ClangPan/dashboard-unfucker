@@ -1,5 +1,9 @@
 # Changelog
 
+## v6.1.1
+- Fixed a rare bug that happens to some users where the option to re-add avatars beside posts didn't work anymore
+	- The reason this occurs is still a mystery
+
 ## v6.1.0
 - Window flags are fixed! The script is now fully functional
 - Some advanced features have been removed semi-permanently, just because Tumblr doesn't recognize the Feature that was used to disable/enable them. I might try to find a workaround if enough people request to re-implement a removed Feature

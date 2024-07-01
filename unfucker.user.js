@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         dashboard unfucker
-// @version      6.1.0
+// @version      6.1.1
 // @description  No more shitty twitter ui for pc
 // @author       ClangPan
 // @author       dragongirlsnout
@@ -17,7 +17,7 @@
 const $ = window.jQuery;
 
 const main = async function (nonce) {
-  const version = '6.1.0';
+  const version = '6.1.1';
 
   //Supported pages
   const match = [
@@ -32,7 +32,7 @@ const main = async function (nonce) {
     'inbox',
     'tagged',
     'explore',
-    'reblog'
+    'reblog',
   ];
 
   //State of the window
@@ -70,6 +70,8 @@ const main = async function (nonce) {
     votelessResults : { advanced: false, type: 'checkbox', value: ''},
     disableScrollingAvatars: { advanced: false, type: 'checkbox', value: '' },
     originalEditorHeaders: { advanced: false, type: 'checkbox', value: '' },
+
+    //Advanced features
     enableCustomTabs: { advanced: true, type: 'checkbox', value: '' },
     enableReblogPolls: { advanced: true, type: 'checkbox', value: '' },
     showNsfwPosts: { advanced: true, type: 'checkbox', value: '' },
@@ -345,7 +347,7 @@ const main = async function (nonce) {
       if (configPreferences.messagingScale.value < 1 || configPreferences.messagingScale.value > 2) configPreferences.messagingScale = 1;
 
       const postSelector = '[tabindex="-1"][data-id] article';
-      const postHeaderTargetSelector = `${keyToCss('main')} > :not(${keyToCss('blogTimeline')}) [data-timeline]:not([data-timeline*='posts/'],${keyToCss('masonry')}) [tabindex='-1'][data-id] article:not(.__avatarFixed)`;
+      const postHeaderTargetSelector = `${keyToCss('main')} > :not(${keyToCss('blogTimeline')}) ${keyToCss('timeline')}:not([data-timeline*='posts/'],${keyToCss('masonry')}) [tabindex='-1'][data-id] article:not(.__avatarFixed)`;
       const noteSelector = `[aria-label="${tr('Notification')}"],[aria-label="${tr('Unread Notification')}"]`;
       const answerSelector = '[data-testid="poll-answer"]:not(.__pollDetailed)';
       const pollBlockSelector = '[data-attribution="poll-block"]';
@@ -359,9 +361,6 @@ const main = async function (nonce) {
 
       const newNodes = [];
       const target = document.getElementById('root');
-
-      //For future usage
-      //document.title = 'Tumblr, but Unfucked';
 
       //Styles the existing elements
       const styleElement = $str(`
@@ -864,7 +863,7 @@ const main = async function (nonce) {
             post.prepend(stickyContainer);
             stickyContainer.append(avatar);
             avatar.querySelector(`${keyToCss('targetWrapper')} img`).sizes = "64px";
-            avatar.querySelectorAll(`${keyToCss('subAvatarTargetWrapper')} img`).forEach(img => img.sizes = "32px");
+            avatar.querySelectorAll(`${keyToCss('subAvatarTargetWrapper')} img`).forEach(img => {img.sizes = "32px"});
             post.classList.add('__avatarFixed');
           } catch (e) {
             console.error('An error occurred processing a post avatar:', e);
@@ -957,7 +956,7 @@ const main = async function (nonce) {
         });
       };
 
-      //Adds the avatar beside posts
+      //Adds the user's avatar beside the header
       const addUserPortrait = () => {
         const bar = $(`${keyToCss('postColumn')} > ${keyToCss('bar')}`);
         if (bar) {
@@ -1317,8 +1316,8 @@ const main = async function (nonce) {
               mutationManager.start(fixHeaderAvatar, postHeaderTargetSelector);
             }
             else {
-              $a(`.__stickyContainer > ${keyToCss('avatar')} ${keyToCss('targetWrapper')} img`).forEach(img => img.sizes = "32px");
-              $a(`.__stickyContainer > ${keyToCss('avatar')} ${keyToCss('subAvatarTargetWrapper')} img`).forEach(img => img.sizes = "16px");
+              $a(`.__stickyContainer > ${keyToCss('avatar')} ${keyToCss('targetWrapper')} img`).forEach(img => {img.sizes = "32px"});
+              $a(`.__stickyContainer > ${keyToCss('avatar')} ${keyToCss('subAvatarTargetWrapper')} img`).forEach(img => {img.sizes = "16px"});
               $a(`.__stickyContainer > ${keyToCss('avatar')}`).forEach(avatar => avatar.closest('article').querySelector('header').prepend(avatar));
               remove($a('.__stickyContainer, .__userAvatarWrapper'));
               $a('.__headerFixed').forEach(elem => elem.classList.remove('__headerFixed'));
@@ -1538,6 +1537,7 @@ const main = async function (nonce) {
           messagingScale: 'Messaging window scale',
           disableTagNag: 'Disable the "post without tags" nag',
           originalEditorHeaders: 'Revert the post editor header design',
+
           enableCustomTabs: 'Enable customizable dashboard tabs',
           enableReblogPolls: 'Enable adding polls to reblogs',
           showNsfwPosts: 'Show hidden NSFW posts in the timeline',
@@ -2140,6 +2140,7 @@ if ($( 'head' ).length === 0) {
       $( head ).append(script());
     }
   };
+
   const observer = new MutationObserver(mutations => {
     const nodes = mutations
       .flatMap(({ addedNodes }) => [...addedNodes])
@@ -2148,5 +2149,6 @@ if ($( 'head' ).length === 0) {
     newNodes.push(...nodes);
     findHead();
   });
+
   observer.observe(document.documentElement, { childList: true, subtree: true });
 } else $( document.head ).append(script());
