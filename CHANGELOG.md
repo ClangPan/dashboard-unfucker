@@ -1,5 +1,9 @@
 # Changelog
 
+## v6.2.0
+- Added option to remove the Tumblr Premium nag
+- Added option to remove the border around notification badges (for compatibility with Palettes)
+
 ## v6.1.1
 - Fixed a rare bug that happens to some users where the option to re-add avatars beside posts didn't work anymore
 	- The reason this occurs is still a mystery

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         dashboard unfucker
-// @version      6.1.1
+// @version      6.2.0
 // @description  No more shitty twitter ui for pc
 // @author       ClangPan
 // @author       dragongirlsnout
@@ -17,7 +17,7 @@
 const $ = window.jQuery;
 
 const main = async function (nonce) {
-  const version = '6.1.1';
+  const version = '6.2.0';
 
   //Supported pages
   const match = [
@@ -49,6 +49,7 @@ const main = async function (nonce) {
     hideTumblrRadar: { advanced: false, type: 'checkbox', value: '' },
     hideExplore: { advanced: false, type: 'checkbox', value: '' },
     hideTumblrShop: { advanced: false, type: 'checkbox', value: 'checked' },
+    hidePremium: { advanced: false, type: 'checkbox', value: 'checked' },
     hideBadges: { advanced: false, type: 'checkbox', value: '' },
     highlightLikelyBots: { advanced: false, type: 'checkbox', value: '' },
     showFollowingLabel: { advanced: false, type: 'checkbox', value: '' },
@@ -70,6 +71,7 @@ const main = async function (nonce) {
     votelessResults : { advanced: false, type: 'checkbox', value: ''},
     disableScrollingAvatars: { advanced: false, type: 'checkbox', value: '' },
     originalEditorHeaders: { advanced: false, type: 'checkbox', value: '' },
+    noBadgeBorder: { advanced: false, type: 'checkbox', value: '' },
 
     //Advanced features
     enableCustomTabs: { advanced: true, type: 'checkbox', value: '' },
@@ -199,7 +201,6 @@ const main = async function (nonce) {
   `);
 
   let localAddedPostFlag = true;
-  let dummyValue = false //config prop placeholder
   const addedPosts = [
   ];
 
@@ -216,12 +217,12 @@ const main = async function (nonce) {
   window.fetch = async (input, options) => {
     const response = await oldFetch(input, options);
     let content = await response.text();
-    if (isPostFetch(input) && (configPreferences.showNsfwPosts.value || dummyValue)) {
+    if (isPostFetch(input) && configPreferences.showNsfwPosts.value) {
       console.info(`Modified data fetched from ${input}`);
       content = JSON.parse(content);
       const elements = content.response.timeline.elements;
       elements.forEach(function (post) { post.isNsfw = false; });
-      if (timelineSelector.test(input) && dummyValue && localAddedPostFlag && typeof window.tumblr.apiFetch !== 'undefined') {
+      if (timelineSelector.test(input) && localAddedPostFlag && typeof window.tumblr.apiFetch !== 'undefined') {
         for (const id of addedPosts) {
           let addedPost;
           await window.tumblr.apiFetch(`/v2/blog/clangpan/posts/${id}?fields[blogs]=name,avatar,title,url,blog_view_url,is_adult,description_npf,uuid,can_be_followed,?followed`).then(response => {
@@ -233,7 +234,6 @@ const main = async function (nonce) {
           if (typeof addedPost !== 'undefined') elements.push(addedPost);
         }
         localAddedPostFlag = false;
-        dummyValue = false;
         updatePreferences();
       }
       content = JSON.stringify(content);
@@ -1335,6 +1335,9 @@ const main = async function (nonce) {
           case '__hideTumblrShop':
             toggle(find($a(keyToCss('menuContainer')), 'use[href="#managed-icon__shop"]'), !value);
             break;
+          case '__hidePremium':
+            toggle(find($a(keyToCss('sidebarItem')), 'div[class="Qihwb"]'), !value);
+            break;
           case '__hideBadges':
             featureStyles.toggle('__bs', value);
             break;
@@ -1392,6 +1395,9 @@ const main = async function (nonce) {
             break;
           case '__originalEditorHeaders':
             featureStyles.toggle('__oe', configPreferences.originalEditorHeaders.value)
+            break;
+          case '__noBadgeBorder':
+            featureStyles.toggle('__bd', configPreferences.noBadgeBorder.value)
             break;
           case '__disableTagNag':
             if (configPreferences.disableTagNag.value) window.localStorage.setItem(tsKey, Number.MAX_SAFE_INTEGER);
@@ -1524,6 +1530,7 @@ const main = async function (nonce) {
           hideTumblrRadar: 'Hide tumblr radar',
           hideExplore: 'Hide Explore',
           hideTumblrShop: 'Hide Tumblr Shop',
+          hidePremium: 'Hide the Tumblr Premium nag in the the sidebar',
           hideBadges: 'Hide badges',
           highlightLikelyBots: 'Highlight likely bots in activity feed',
           showFollowingLabel: 'Show who follows you in the activity feed',
@@ -1537,6 +1544,7 @@ const main = async function (nonce) {
           messagingScale: 'Messaging window scale',
           disableTagNag: 'Disable the "post without tags" nag',
           originalEditorHeaders: 'Revert the post editor header design',
+          noBadgeBorder: 'Removes the border around icon badges (for compatibility with the Palettes extension)',
 
           enableCustomTabs: 'Enable customizable dashboard tabs',
           enableReblogPolls: 'Enable adding polls to reblogs',
@@ -1778,6 +1786,11 @@ const main = async function (nonce) {
           toggle(find($a(keyToCss('menuContainer')), 'use[href="#managed-icon__shop"]'), !configPreferences.hideTumblrShop.value);
         });
 
+        //Toggles the Tumblr Premium nag
+        waitFor(keyToCss('sidebar')).then(() => {
+          toggle(find($a(keyToCss('sidebarItem')), 'div[class="Qihwb"]'), !configPreferences.hidePremium.value);
+        });
+
         if (configPreferences.highlightLikelyBots.value || configPreferences.showFollowingLabel.value) {
           mutationManager.start(scanNotes, noteSelector);
         }
@@ -1809,6 +1822,11 @@ const main = async function (nonce) {
             ${keyToCss('selectedBlogName')}${keyToCss('hasAvatar')} { margin-left: 0 !important; }
           }
         `, '', configPreferences.originalEditorHeaders.value);
+
+        //Css to remove border around badges
+        featureStyles.build('__bd', `
+          ${keyToCss('notificationBadge')} { border: 2px solid rgba(0,0,0,0) !important; }
+        `, '', configPreferences.noBadgeBorder.value);
 
         //Css to remove badges
         featureStyles.build('__bs', `${keyToCss('badgeContainer')}, ${keyToCss('peeprHeaderBadgesWrapper')} { display: none; }`, '', configPreferences.hideBadges.value);
@@ -2080,7 +2098,6 @@ const main = async function (nonce) {
       unfuck();
 
       window.setTimeout(() => { //added post fallback. does it work? who knows
-        dummyValue = false;
         updatePreferences();
       }, 900000)
 

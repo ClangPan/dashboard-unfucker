@@ -1,8 +1,0 @@
-{
-  "devDependencies": {
-    "eslint": "^8.55.0"
-  },
-  "scripts": {
-    "test": "npx eslint unfucker.user.js"
-  }
-}
