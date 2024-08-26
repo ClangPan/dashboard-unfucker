@@ -1,5 +1,9 @@
 # Changelog
 
+## v6.2.1
+- Added a simplified version of the communities button, will see if it's possible to replicate the behavior of the vertical layout
+- Added some buttons that just, mysteriously disappeared from the user popup???? Tumblr what are you doing
+
 ## v6.2.0
 - Added option to remove the Tumblr Premium nag
 - Added option to remove the border around notification badges (for compatibility with Palettes)

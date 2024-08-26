@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         dashboard unfucker
-// @version      6.2.0
+// @version      6.2.1
 // @description  No more shitty twitter ui for pc
 // @author       ClangPan
 // @author       dragongirlsnout
@@ -17,7 +17,7 @@
 const $ = window.jQuery;
 
 const main = async function (nonce) {
-  const version = '6.2.0';
+  const version = '6.2.1';
 
   //Supported pages
   const match = [
@@ -1717,6 +1717,43 @@ const main = async function (nonce) {
         return menuShell;
       };
 
+      //Re-add buttons that got removed in the user popup
+      var navItemsObserver = new MutationObserver(function(mutations) {
+          const navItems = document.querySelector(keyToCss('navItems'));
+          if (navItems && navItems.children.length < 3) {
+              //Settings
+              const settingsItem = navItems.children[0].cloneNode(true);
+              settingsItem.querySelector('use').setAttribute("href", "#managed-icon__settings");
+              settingsItem.querySelector(keyToCss('navLink')).setAttribute("href", "/settings/account");
+              settingsItem.querySelector(keyToCss('childWrapper')).innerText = "Settings";
+              settingsItem.querySelector(keyToCss('endChildWrapper')).remove();
+              navItems.appendChild(settingsItem);
+
+              //What's new
+              const newsItem = settingsItem.cloneNode(true);
+              newsItem.querySelector('use').setAttribute("href", "#managed-icon__gift");
+              newsItem.querySelector(keyToCss('navLink')).setAttribute("href", "/changes");
+              newsItem.querySelector(keyToCss('childWrapper')).innerText = "What's new";
+              navItems.appendChild(newsItem);
+
+              //Help
+              const helpItem = settingsItem.cloneNode(true);
+              helpItem.querySelector('use').setAttribute("href", "#managed-icon__help");
+              helpItem.querySelector(keyToCss('navLink')).setAttribute("href", "/help");
+              helpItem.querySelector(keyToCss('childWrapper')).innerText = "Help";
+              navItems.appendChild(helpItem);
+
+              //Change Palette
+              const paletteItem = settingsItem.cloneNode(true);
+              paletteItem.querySelector('use').setAttribute("href", "#managed-icon__palette");
+              paletteItem.querySelector(keyToCss('navLink')).setAttribute("href", "/settings/dashboard");
+              paletteItem.querySelector(keyToCss('childWrapper')).innerText = "Change Palette";
+              navItems.appendChild(paletteItem);
+          }
+      });
+
+      navItemsObserver.observe(document, {attributes: false, childList: true, characterData: false, subtree:true});
+
       const fixMasonryNotes = noteCounts => {
         for (const noteCount of noteCounts) {
           if (noteCount.innerText.length > 9) noteCount.innerHTML = `<span class="${keyToClasses('blackText').join(' ')}">${noteCount.querySelector('span').innerText}<span>`;
@@ -1764,21 +1801,34 @@ const main = async function (nonce) {
           [data-tag-carousel-cell] ${keyToCss('carouselWrapper')} { display: none !important }
         `, '', configPreferences.hideRecommendedTags.value);
 
+        //Restore the original header
         if (configPreferences.originalHeaders.value) {
           addUserPortrait();
           mutationManager.start(fixHeader, postSelector);
           mutationManager.start(fixHeaderAvatar, postHeaderTargetSelector);
         }
 
+        //Toggles Tumblr radar
         waitFor(keyToCss('radar')).then(() => {
           toggle(find($a(keyToCss('sidebarItem')), keyToCss('radar')), !configPreferences.hideTumblrRadar.value);
         });
 
+        //Toggles Dashboard tabs
         if (isDashboard()) {
           waitFor(keyToCss('timelineHeader')).then(() => {
             toggle($(keyToCss('timelineHeader')), !configPreferences.hideDashboardTabs.value);
           });
         }
+
+        //Create the communities icon
+        waitFor(keyToCss('menuContainer')).then(() => {
+          const exploreIcon = find($a(keyToCss('menuContainer')), 'use[href="#managed-icon__explore"]');
+          const communitiesIcon = exploreIcon.cloneNode(true);
+          communitiesIcon.querySelector('use').setAttribute("href", "#managed-icon__communities");
+          communitiesIcon.querySelector('a').setAttribute("href", "/communities");
+          //toggle(communitiesIcon, true);
+          exploreIcon.parentNode.insertBefore(communitiesIcon, exploreIcon);
+        });
 
         //Toggles the Explore and Shop icon
         waitFor(keyToCss('menuRight')).then(() => {
@@ -2169,3 +2219,4 @@ if ($( 'head' ).length === 0) {
 
   observer.observe(document.documentElement, { childList: true, subtree: true });
 } else $( document.head ).append(script());
+
