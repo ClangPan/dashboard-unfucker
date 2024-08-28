@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         dashboard unfucker
-// @version      6.2.1
+// @version      6.2.2
 // @description  No more shitty twitter ui for pc
 // @author       ClangPan
 // @author       dragongirlsnout
@@ -17,7 +17,7 @@
 const $ = window.jQuery;
 
 const main = async function (nonce) {
-  const version = '6.2.1';
+  const version = '6.2.2';
 
   //Supported pages
   const match = [
@@ -33,6 +33,7 @@ const main = async function (nonce) {
     'tagged',
     'explore',
     'reblog',
+    'communities',
   ];
 
   //State of the window
@@ -1505,7 +1506,7 @@ const main = async function (nonce) {
         //Links and labels in the meatball menu
         const info = [
           { url: 'https://github.com/ClangPan/dashboard-unfucker', text: 'Source' },
-          { url: 'https://github.com/ClangPan/dashboard-unfucker/blob/main/changelog.md', text: 'Changelog' },
+          { url: 'https://github.com/ClangPan/dashboard-unfucker/blob/main/CHANGELOG.md', text: 'Changelog' },
           { url: 'https://github.com/ClangPan/dashboard-unfucker/issues/', text: 'Report a bug' },
           { url: 'https://raw.githubusercontent.com/ClangPan/dashboard-unfucker/main/unfucker.user.js', text: 'Update' },
           { url: 'https://tumblr.com/dragongirlsnout', text: "Original author's Tumblr!" },
@@ -1731,14 +1732,14 @@ const main = async function (nonce) {
 
               //What's new
               const newsItem = settingsItem.cloneNode(true);
-              newsItem.querySelector('use').setAttribute("href", "#managed-icon__gift");
+              newsItem.querySelector('use').setAttribute("href", "#managed-icon__lightning");
               newsItem.querySelector(keyToCss('navLink')).setAttribute("href", "/changes");
               newsItem.querySelector(keyToCss('childWrapper')).innerText = "What's new";
               navItems.appendChild(newsItem);
 
               //Help
               const helpItem = settingsItem.cloneNode(true);
-              helpItem.querySelector('use').setAttribute("href", "#managed-icon__help");
+              helpItem.querySelector('use').setAttribute("href", "#managed-icon__ds-help-filled-24");
               helpItem.querySelector(keyToCss('navLink')).setAttribute("href", "/help");
               helpItem.querySelector(keyToCss('childWrapper')).innerText = "Help";
               navItems.appendChild(helpItem);
@@ -1823,11 +1824,13 @@ const main = async function (nonce) {
         //Create the communities icon
         waitFor(keyToCss('menuContainer')).then(() => {
           const exploreIcon = find($a(keyToCss('menuContainer')), 'use[href="#managed-icon__explore"]');
-          const communitiesIcon = exploreIcon.cloneNode(true);
-          communitiesIcon.querySelector('use').setAttribute("href", "#managed-icon__communities");
-          communitiesIcon.querySelector('a').setAttribute("href", "/communities");
-          //toggle(communitiesIcon, true);
-          exploreIcon.parentNode.insertBefore(communitiesIcon, exploreIcon);
+          if (exploreIcon.parentNode.children.length < 9)
+          {
+            const communitiesIcon = exploreIcon.cloneNode(true);
+            communitiesIcon.querySelector('use').setAttribute("href", "#managed-icon__communities");
+            communitiesIcon.querySelector('a').setAttribute("href", "/communities");
+            exploreIcon.parentNode.insertBefore(communitiesIcon, exploreIcon);
+          }
         });
 
         //Toggles the Explore and Shop icon

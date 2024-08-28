@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.2.2
+- Fixed the changelog link
+- Put the correct icons for the restored buttons
+- (Hopefully) Fixed a bug where the communities icon would keep spawning endlessly for some people
+
 ## v6.2.1
 - Added a simplified version of the communities button, will see if it's possible to replicate the behavior of the vertical layout
 - Added some buttons that just, mysteriously disappeared from the user popup???? Tumblr what are you doing
