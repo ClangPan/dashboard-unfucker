@@ -1,3 +1,4 @@
+# Due to changes in Tumblr's internals, the script isn't functional anymore as of 24/10/2024, efforts are being made to find an alternative fix, please be patient
 # Dashboard Unfucker
 Unfucks the twitterification of tumblr's dashboard by reverting it to the old layout as closely as possible while also offering control over other aspects of the UI.
 Original credit goes to @enchanted-sword/[dragongirlsnout](https://tumblr.com/dragongirlsnout)
